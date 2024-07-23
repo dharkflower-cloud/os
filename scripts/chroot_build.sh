@@ -70,7 +70,7 @@ function install_pkg() {
     apt-get -y upgrade
 
     # Add Cinnamon PPA and install Cinnamon
-    add-apt-repository -y ppa:embrosyn/cinnamon
+    add-apt-repository -y ppa:ubuntucinnamonremix/all
     apt-get update
     apt-get install -y cinnamon
 
