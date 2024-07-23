@@ -80,6 +80,7 @@ function run_chroot() {
     sudo mkdir -p chroot/root/assets
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
     sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
+    sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
