@@ -89,6 +89,8 @@ function run_chroot() {
     sudo rm -f chroot/root/chroot_build.sh
     sudo rm -f chroot/root/config.sh
     sudo rm -rf chroot/root/assets
+    sudo rm -f chroot/root/preseed.cfg
+    sudo rm -f chroot/root/flower.sh
 
     chroot_exit_teardown
 }
@@ -121,7 +123,7 @@ menuentry "${GRUB_INSTALL_LABEL}" {
 EOF
 
     # Copy preseed file to ISO image
-    cp chroot/root/preseed.cfg image/preseed.cfg
+    sudo cp chroot/root/preseed.cfg image/preseed.cfg
 
     # generate manifest
     echo -e "Generating filesystem manifest..."
