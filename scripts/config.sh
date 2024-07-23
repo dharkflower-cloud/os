@@ -52,7 +52,8 @@ function customize_image() {
     gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
 
     # Replace installation slideshow with static image
-    cp /root/assets/Protoflower_beta3_large_whitebg.png /usr/share/ubiquity-slideshow/slides/slides.png
+    mkdir -p /usr/share/ubiquity-slideshow/slides
+    cp /root/assets/solid-color-image.png /usr/share/ubiquity-slideshow/slides/slides.png
 
     # Create preseed file to skip location step
     echo "d-i time/zone string America/Denver" > /cdrom/preseed.cfg
