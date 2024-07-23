@@ -11,27 +11,6 @@ CMD=(setup_host debootstrap run_chroot build_iso)
 
 DATE=`TZ="UTC" date +"%y%m%d-%H%M%S"`
 
-function help() {
-    # if $1 is set, use $1 as headline message in help()
-    if [ -z ${1+x} ]; then
-        echo -e "This script builds a bootable ubuntu ISO image"
-        echo -e
-    else
-        echo -e $1
-        echo
-    fi
-    echo -e "Supported commands : ${CMD[*]}"
-    echo -e
-    echo -e "Syntax: $0 [start_cmd] [-] [end_cmd]"
-    echo -e "\trun from start_cmd to end_end"
-    echo -e "\tif start_cmd is omitted, start from first command"
-    echo -e "\tif end_cmd is omitted, end with last command"
-    echo -e "\tenter single cmd to run the specific command"
-    echo -e "\tenter '-' as only argument to run all commands"
-    echo -e
-    exit 0
-}
-
 function find_index() {
     local ret;
     local i;
@@ -41,7 +20,8 @@ function find_index() {
             return;
         fi
     done
-    help "Command not found : $1"
+    echo "Command not found: $1"
+    exit 1
 }
 
 function chroot_enter_setup() {
@@ -60,38 +40,12 @@ function chroot_exit_teardown() {
     sudo umount chroot/run
 }
 
-function check_host() {
-    local os_ver
-    os_ver=`lsb_release -i | grep -E "(Ubuntu|Debian)"`
-    if [[ -z "$os_ver" ]]; then
-        echo "WARNING : OS is not Debian or Ubuntu and is untested"
-    fi
-
-    if [ $(id -u) -eq 0 ]; then
-        echo "This script should not be run as 'root'"
-        exit 1
-    fi
-}
-
 # Load configuration values from file
 function load_config() {
     if [[ -f "$SCRIPT_DIR/config.sh" ]]; then
         . "$SCRIPT_DIR/config.sh"
-    elif [[ -f "$SCRIPT_DIR/default_config.sh" ]]; then
-        . "$SCRIPT_DIR/default_config.sh"
     else
-        >&2 echo "Unable to find default config file  $SCRIPT_DIR/default_config.sh, aborting."
-        exit 1
-    fi
-}
-
-# Verify that necessary configuration values are set and they are valid
-function check_config() {
-    local expected_config_version
-    expected_config_version="0.4"
-
-    if [[ "$CONFIG_FILE_VERSION" != "$expected_config_version" ]]; then
-        >&2 echo "Invalid or old config version $CONFIG_FILE_VERSION, expected $expected_config_version. Please update your configuration file from the default."
+        >&2 echo "Unable to find config file $SCRIPT_DIR/config.sh, aborting."
         exit 1
     fi
 }
@@ -115,7 +69,6 @@ function run_chroot() {
 
     # Setup build scripts in chroot environment
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
-    sudo ln -f $SCRIPT_DIR/default_config.sh chroot/root/default_config.sh
     if [[ -f "$SCRIPT_DIR/config.sh" ]]; then
         sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
     fi
@@ -125,7 +78,6 @@ function run_chroot() {
 
     # Cleanup after image changes
     sudo rm -f chroot/root/chroot_build.sh
-    sudo rm -f chroot/root/default_config.sh
     if [[ -f "chroot/root/config.sh" ]]; then
         sudo rm -f chroot/root/config.sh
     fi
@@ -161,31 +113,9 @@ insmod all_video
 set default="0"
 set timeout=30
 
-menuentry "${GRUB_LIVEBOOT_LABEL}" {
-   linux /casper/vmlinuz boot=casper nopersistent toram quiet splash ---
-   initrd /casper/initrd
-}
-
 menuentry "${GRUB_INSTALL_LABEL}" {
    linux /casper/vmlinuz boot=casper only-ubiquity quiet splash ---
    initrd /casper/initrd
-}
-
-menuentry "Check disc for defects" {
-   linux /casper/vmlinuz boot=casper integrity-check quiet splash ---
-   initrd /casper/initrd
-}
-
-menuentry "Test memory Memtest86+ (BIOS)" {
-   linux16 /install/memtest86+
-}
-
-menuentry "Test memory Memtest86 (UEFI, long load time)" {
-   insmod part_gpt
-   insmod search_fs_uuid
-   insmod chain
-   loopback loop /install/memtest86
-   chainloader (loop,gpt1)/efi/boot/BOOTX64.efi
 }
 EOF
 
@@ -201,8 +131,6 @@ EOF
         -noappend -no-duplicates -no-recovery \
         -wildcards \
         -e "var/cache/apt/archives/*" \
-        -e "root/*" \
-        -e "root/.*" \
         -e "tmp/*" \
         -e "tmp/.*" \
         -e "swapfile"
@@ -210,7 +138,7 @@ EOF
 
     # create diskdefines
     cat <<EOF > image/README.diskdefines
-#define DISKNAME  ${GRUB_LIVEBOOT_LABEL}
+#define DISKNAME  ${GRUB_INSTALL_LABEL}
 #define TYPE  binary
 #define TYPEbinary  1
 #define ARCH  amd64
@@ -284,11 +212,9 @@ EOF
 cd $SCRIPT_DIR
 
 load_config
-check_config
-check_host
 
 # check number of args
-if [[ $# == 0 || $# > 3 ]]; then help; fi
+if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
 
 # loop through args
 dash_flag=false

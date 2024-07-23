@@ -9,27 +9,6 @@ SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
 CMD=(setup_host install_pkg finish_up)
 
-function help() {
-    # if $1 is set, use $1 as headline message in help()
-    if [ -z ${1+x} ]; then
-        echo -e "This script builds Ubuntu from scratch"
-        echo -e
-    else
-        echo -e $1
-        echo
-    fi
-    echo -e "Supported commands : ${CMD[*]}"
-    echo -e
-    echo -e "Syntax: $0 [start_cmd] [-] [end_cmd]"
-    echo -e "\trun from start_cmd to end_end"
-    echo -e "\tif start_cmd is omitted, start from first command"
-    echo -e "\tif end_cmd is omitted, end with last command"
-    echo -e "\tenter single cmd to run the specific command"
-    echo -e "\tenter '-' as only argument to run all commands"
-    echo -e
-    exit 0
-}
-
 function find_index() {
     local ret;
     local i;
@@ -39,17 +18,8 @@ function find_index() {
             return;
         fi
     done
-    help "Command not found : $1"
-}
-
-function check_host() {
-    if [ $(id -u) -ne 0 ]; then
-        echo "This script should be run as 'root'"
-        exit 1
-    fi
-
-    export HOME=/root
-    export LC_ALL=C
+    echo "Command not found: $1"
+    exit 1
 }
 
 function setup_host() {
@@ -85,10 +55,8 @@ EOF
 function load_config() {
     if [[ -f "$SCRIPT_DIR/config.sh" ]]; then 
         . "$SCRIPT_DIR/config.sh"
-    elif [[ -f "$SCRIPT_DIR/default_config.sh" ]]; then
-        . "$SCRIPT_DIR/default_config.sh"
     else
-        >&2 echo "Unable to find default config file  $SCRIPT_DIR/default_config.sh, aborting."
+        >&2 echo "Unable to find config file $SCRIPT_DIR/config.sh, aborting."
         exit 1
     fi
 }
@@ -180,10 +148,9 @@ function finish_up() {
 # =============   main  ================
 
 load_config
-check_host
 
 # check number of args
-if [[ $# == 0 || $# > 3 ]]; then help; fi
+if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
 
 # loop through args
 dash_flag=false
@@ -212,4 +179,3 @@ for ((ii=$start_index; ii<$end_index; ii++)); do
 done
 
 echo "$0 - Initial build is done!"
-

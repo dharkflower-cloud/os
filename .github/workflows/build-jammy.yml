@@ -23,7 +23,7 @@ jobs:
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ubuntu-from-scratch
+          name: flower
           path: |
-            scripts/ubuntu-from-scratch.iso
+            scripts/flower.iso
             scripts/image/md5sum.txt
