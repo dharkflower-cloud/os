@@ -80,11 +80,7 @@ function run_chroot() {
     sudo mkdir -p chroot/root/assets
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
     sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
-
-    # Create preseed file to skip location step inside chroot environment
-    sudo chroot chroot /bin/bash -c "echo 'd-i time/zone string America/Denver' > /root/preseed.cfg"
-    sudo chroot chroot /bin/bash -c "echo 'd-i clock-setup/utc boolean true' >> /root/preseed.cfg"
-    sudo chroot chroot /bin/bash -c "echo 'd-i clock-setup/ntp boolean true' >> /root/preseed.cfg"
+    sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
@@ -93,6 +89,7 @@ function run_chroot() {
     sudo rm -f chroot/root/chroot_build.sh
     sudo rm -f chroot/root/config.sh
     sudo rm -rf chroot/root/assets
+    sudo rm -f chroot/root/preseed.cfg
     sudo rm -f chroot/root/flower.sh
 
     chroot_exit_teardown
@@ -126,7 +123,7 @@ menuentry "${GRUB_INSTALL_LABEL}" {
 EOF
 
     # Copy preseed file to ISO image
-    sudo cp chroot/root/preseed.cfg image/preseed.cfg
+    sudo cp $SCRIPT_DIR/preseed.cfg image/preseed.cfg
 
     # generate manifest
     echo -e "Generating filesystem manifest..."
