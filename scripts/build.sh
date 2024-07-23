@@ -73,6 +73,10 @@ function run_chroot() {
         sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
     fi
 
+    # Copy assets to chroot environment
+    sudo mkdir -p chroot/root/assets
+    sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
+
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
 
@@ -81,6 +85,7 @@ function run_chroot() {
     if [[ -f "chroot/root/config.sh" ]]; then
         sudo rm -f chroot/root/config.sh
     fi
+    sudo rm -rf chroot/root/assets
 
     chroot_exit_teardown
 }
@@ -111,13 +116,16 @@ search --set=root --file /ubuntu
 insmod all_video
 
 set default="0"
-set timeout=30
+set timeout=0
 
 menuentry "${GRUB_INSTALL_LABEL}" {
    linux /casper/vmlinuz boot=casper only-ubiquity quiet splash ---
    initrd /casper/initrd
 }
 EOF
+
+    # Copy preseed file to ISO image
+    cp /root/preseed.cfg image/preseed.cfg
 
     # generate manifest
     sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest
@@ -224,17 +232,17 @@ for ii in "$@";
 do
     if [[ $ii == "-" ]]; then
         dash_flag=true
-        continue
+        continue;
     fi
     find_index $ii
     if [[ $dash_flag == false ]]; then
-        start_index=$index
+        start_index=$index;
     else
-        end_index=$(($index+1))
+        end_index=$(($index+1));
     fi
 done
 if [[ $dash_flag == false ]]; then
-    end_index=$(($start_index + 1))
+    end_index=$(($start_index + 1));
 fi
 
 #loop through the commands

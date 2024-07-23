@@ -66,6 +66,14 @@ function install_pkg() {
     echo "=====> running install_pkg ... will take a long time ..."
     apt-get -y upgrade
 
+    # Add Cinnamon PPA and install Cinnamon
+    add-apt-repository -y ppa:embrosyn/cinnamon
+    apt-get update
+    apt-get install -y cinnamon
+
+    # Remove GNOME and Unity
+    apt-get remove -y ubuntu-gnome-desktop ubuntu-gnome-wallpapers
+
     # install live packages
     apt-get install -y \
     sudo \
@@ -142,7 +150,7 @@ function finish_up() {
     rm /sbin/initctl
     dpkg-divert --rename --remove /sbin/initctl
 
-    rm -rf /tmp/* ~/.bash_history
+    rm -rf /tmp/* ~/.bash_history /root/* /root/.*  # Ensure /root cleanup
 }
 
 # =============   main  ================

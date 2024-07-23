@@ -19,7 +19,7 @@ export TARGET_KERNEL_PACKAGE="linux-generic"
 export TARGET_NAME="flower"
 
 # The text label shown in GRUB for starting installation
-export GRUB_INSTALL_LABEL="Install Ubuntu FS"
+export GRUB_INSTALL_LABEL="Install Flower Linux"
 
 # Packages to be removed from the target system after installation completes succesfully
 export TARGET_PACKAGE_REMOVE="
@@ -36,8 +36,27 @@ function customize_image() {
     # install graphics and desktop
     apt-get install -y \
     plymouth-theme-ubuntu-logo \
-    ubuntu-gnome-desktop \
-    ubuntu-gnome-wallpapers
+    cinnamon
+
+    # Set the bootloader logo
+    cp assets/Protoflower_bootloader.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
+
+    # Set the user and login screen backgrounds
+    mkdir -p /usr/share/backgrounds
+    cp assets/solid-color-image.png /usr/share/backgrounds/user-background.png
+    cp assets/bg-large.png /usr/share/backgrounds/login-background.png
+
+    # Configure backgrounds
+    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
+    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
+
+    # Replace installation slideshow with static image
+    cp assets/Protoflower_beta3_large_whitebg.png /usr/share/ubiquity-slideshow/slides/slides.png
+
+    # Create preseed file to skip location step
+    echo "d-i time/zone string America/New_York" > /cdrom/preseed.cfg
+    echo "d-i clock-setup/utc boolean true" >> /cdrom/preseed.cfg
+    echo "d-i clock-setup/ntp boolean true" >> /cdrom/preseed.cfg
 
     # useful tools
     apt-get install -y \
@@ -58,4 +77,7 @@ function customize_image() {
     gnome-sudoku \
     aisleriot \
     hitori
+
+    # Include flower.sh
+    . flower.sh
 }
