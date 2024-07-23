@@ -153,7 +153,9 @@ function finish_up() {
     rm /sbin/initctl
     dpkg-divert --rename --remove /sbin/initctl
 
-    rm -rf /tmp/* ~/.bash_history /root/* /root/.*  # Ensure /root cleanup
+    # Remove specific files and directories instead of patterns
+    rm -rf /tmp/* /root/*
+    rm -f ~/.bash_history
 }
 
 # =============   main  ================
