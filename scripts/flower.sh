@@ -37,16 +37,6 @@ npm install -g -f \
 
 npm install -g nodemon pm2 >/dev/null
 
-# VSC Code
-echo "Installing Visual Studio Code..."
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 
-#curl -O https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list
-rm microsoft.gpg
-apt-get update >/dev/null
-apt-get -y install code >/dev/null
-
 # Chrome
 echo "Installing Google Chrome..."
 wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - >/dev/null
