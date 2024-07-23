@@ -41,7 +41,10 @@ EOF
     # we need to install systemd first, to configure machine id
     echo "Updating package list and installing systemd-sysv..."
     apt-get update >/dev/null
-    apt-get install -y libterm-readline-gnu-perl systemd-sysv >/dev/null
+    apt-get install -y \
+        libterm-readline-gnu-perl \
+        systemd-sysv \
+        apt-utils >/dev/null
 
     #configure machine id
     dbus-uuidgen > /etc/machine-id
@@ -62,52 +65,56 @@ function install_pkg() {
 
     apt-get update >/dev/null
     echo "Installing software-properties-common and upgrading packages..."
-    apt-get install -y software-properties-common >/dev/null
+    apt-get install -y \
+        software-properties-common >/dev/null
     apt-get -y upgrade >/dev/null
 
     # Add Cinnamon PPA and install Cinnamon
     echo "Adding Cinnamon PPA and installing Cinnamon..."
     add-apt-repository -y ppa:ubuntucinnamonremix/all >/dev/null
     apt-get update >/dev/null
-    apt-get install -y cinnamon >/dev/null
+    apt-get install -y \
+        cinnamon >/dev/null
 
     # Remove GNOME and Unity
     echo "Removing GNOME and Unity..."
-    apt-get remove -y ubuntu-gnome-desktop ubuntu-gnome-wallpapers >/dev/null
+    apt-get remove -y \
+        ubuntu-gnome-desktop \
+        ubuntu-gnome-wallpapers >/dev/null
 
     # install live packages
-    echo "Installing live packages..."
+    echo "Installing core packages..."
     apt-get install -y \
-    sudo \
-    ubuntu-standard \
-    casper \
-    discover \
-    laptop-detect \
-    os-prober \
-    network-manager \
-    resolvconf \
-    net-tools \
-    wireless-tools \
-    wpagui \
-    grub-common \
-    grub-gfxpayload-lists \
-    grub-pc \
-    grub-pc-bin \
-    grub2-common \
-    locales >/dev/null
+        sudo \
+        ubuntu-standard \
+        casper \
+        discover \
+        laptop-detect \
+        os-prober \
+        network-manager \
+        resolvconf \
+        net-tools \
+        wireless-tools \
+        wpagui \
+        grub-common \
+        grub-gfxpayload-lists \
+        grub-pc \
+        grub-pc-bin \
+        grub2-common \
+        locales >/dev/null
     
     # install kernel
     echo "Installing kernel package..."
-    apt-get install -y --no-install-recommends $TARGET_KERNEL_PACKAGE >/dev/null
+    apt-get install -y --no-install-recommends \
+        $TARGET_KERNEL_PACKAGE >/dev/null
 
     # graphic installer - ubiquity
     echo "Installing Ubiquity installer..."
     apt-get install -y \
-    ubiquity \
-    ubiquity-casper \
-    ubiquity-frontend-gtk \
-    ubiquity-slideshow-ubuntu \
-    ubiquity-ubuntu-artwork >/dev/null
+        ubiquity \
+        ubiquity-casper \
+        ubiquity-frontend-gtk \
+        ubiquity-ubuntu-artwork >/dev/null
 
     # Call into config function
     customize_image

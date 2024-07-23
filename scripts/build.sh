@@ -47,9 +47,18 @@ function load_config() {
 
 function setup_host() {
     echo "=====> running setup_host ..."
+    echo -e "Updating package list and installing necessary packages for the host..."
     sudo apt update >/dev/null
-    echo "Installing necessary packages for the host..."
-    sudo apt install -y binutils debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools dosfstools unzip >/dev/null
+    sudo apt install -y \
+        binutils \
+        debootstrap \
+        squashfs-tools \
+        xorriso \
+        grub-pc-bin \
+        grub-efi-amd64-bin \
+        mtools \
+        dosfstools \
+        unzip >/dev/null
     sudo mkdir -p chroot
 }
 
@@ -113,6 +122,7 @@ EOF
     cp /root/preseed.cfg image/preseed.cfg
 
     # generate manifest
+    echo -e "Generating filesystem manifest..."
     sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest >/dev/null
     sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
     for pkg in $TARGET_PACKAGE_REMOVE; do
@@ -144,6 +154,7 @@ EOF
 EOF
 
     # create iso image
+    echo "Creating ISO image..."
     pushd $SCRIPT_DIR/image
     grub-mkstandalone \
         --format=x86_64-efi \
@@ -173,7 +184,6 @@ EOF
 
     sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v -e 'md5sum.txt' -e 'bios.img' -e 'efiboot.img' > md5sum.txt)" >/dev/null
 
-    echo "Creating ISO image..."
     sudo xorriso \
         -as mkisofs \
         -iso-level 3 \
@@ -181,7 +191,7 @@ EOF
         -volid "$TARGET_NAME" \
         -eltorito-boot boot/grub/bios.img \
         -no-emul-boot \
-        -boot-load-size 4 \
+        -boot-load-size 1 \
         -boot-info-table \
         --eltorito-catalog boot/grub/boot.cat \
         --grub2-boot-info \

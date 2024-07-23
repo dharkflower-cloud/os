@@ -33,48 +33,48 @@ export TARGET_PACKAGE_REMOVE="
 # Package customisation function. Update this function to customize packages
 # present on the installed system.
 function customize_image() {
-    # install graphics and desktop
-    echo "Installing Cinnamon..."
-    apt-get install -y cinnamon >/dev/null
+    echo -e "Installing Cinnamon..."
+    apt-get install -y \
+        cinnamon \
+        apt-utils >/dev/null
 
     # Set the bootloader logo
-    cp /mnt/data/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
+    cp /root/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
 
     # Set the user and login screen backgrounds
     mkdir -p /usr/share/backgrounds
-    cp /mnt/data/assets/solid-color-image.png /usr/share/backgrounds/user-background.png
-    cp /mnt/data/assets/bg-large.png /usr/share/backgrounds/login-background.png
+    cp /root/assets/solid-color-image.png /usr/share/backgrounds/user-background.png
+    cp /root/assets/bg-large.png /usr/share/backgrounds/login-background.png
 
     # Configure backgrounds
     gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
     gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
 
     # Replace installation slideshow with static image
-    cp /mnt/data/assets/Protoflower_beta3_large_whitebg.png /usr/share/ubiquity-slideshow/slides/slides.png
+    cp /root/assets/Protoflower_beta3_large_whitebg.png /usr/share/ubiquity-slideshow/slides/slides.png
 
     # Create preseed file to skip location step
-    echo "d-i time/zone string America/New_York" > /cdrom/preseed.cfg
+    echo "d-i time/zone string America/Denver" > /cdrom/preseed.cfg
     echo "d-i clock-setup/utc boolean true" >> /cdrom/preseed.cfg
     echo "d-i clock-setup/ntp boolean true" >> /cdrom/preseed.cfg
 
-    # useful tools
-    echo "Installing useful tools..."
+    echo -e "Installing useful tools..."
     apt-get install -y \
-    clamav-daemon \
-    terminator \
-    apt-transport-https \
-    curl \
-    vim \
-    nano \
-    less >/dev/null
+        clamav-daemon \
+        terminator \
+        apt-transport-https \
+        curl \
+        vim \
+        nano \
+        less >/dev/null
 
-    # purge
+    echo -e "Purging unnecessary packages..."
     apt-get purge -y \
-    gnome-mahjongg \
-    gnome-mines \
-    gnome-sudoku \
-    aisleriot \
-    hitori >/dev/null
+        gnome-mahjongg \
+        gnome-mines \
+        gnome-sudoku \
+        aisleriot \
+        hitori >/dev/null
 
     # Include flower.sh
     . /root/flower.sh
