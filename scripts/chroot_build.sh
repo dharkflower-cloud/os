@@ -64,6 +64,9 @@ function load_config() {
 
 function install_pkg() {
     echo "=====> running install_pkg ... will take a long time ..."
+
+    apt-get update
+    apt-get install -y software-properties-common
     apt-get -y upgrade
 
     # Add Cinnamon PPA and install Cinnamon
