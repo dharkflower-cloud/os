@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "Configuring Flower"
+echo -e "Installing Flower Applications"
 
 # Node.js
 apt-get update
