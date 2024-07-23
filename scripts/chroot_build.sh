@@ -2,7 +2,7 @@
 
 set -e                  # exit on error
 set -o pipefail         # exit on pipeline error
-set -u                  # treat unset variable as error
+#set -u                  # treat unset variable as error
 #set -x
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -154,7 +154,7 @@ function finish_up() {
     dpkg-divert --rename --remove /sbin/initctl
 
     # Remove specific files and directories instead of patterns
-    rm -rf /tmp/* /root/*
+    rm -rf /tmp/*
     rm -f ~/.bash_history
 }
 
