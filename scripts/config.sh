@@ -56,9 +56,9 @@ function customize_image() {
     cp /root/assets/solid-color-image.png /usr/share/ubiquity-slideshow/slides/slides.png
 
     # Create preseed file to skip location step
-    echo "d-i time/zone string America/Denver" > /cdrom/preseed.cfg
-    echo "d-i clock-setup/utc boolean true" >> /cdrom/preseed.cfg
-    echo "d-i clock-setup/ntp boolean true" >> /cdrom/preseed.cfg
+    echo "d-i time/zone string America/Denver" > /root/preseed.cfg
+    echo "d-i clock-setup/utc boolean true" >> /root/preseed.cfg
+    echo "d-i clock-setup/ntp boolean true" >> /root/preseed.cfg
 
     echo -e "Installing useful tools..."
     apt-get install -y \

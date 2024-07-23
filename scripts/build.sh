@@ -79,6 +79,7 @@ function run_chroot() {
     # Copy assets to chroot environment
     sudo mkdir -p chroot/root/assets
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
+    sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
@@ -119,7 +120,7 @@ menuentry "${GRUB_INSTALL_LABEL}" {
 EOF
 
     # Copy preseed file to ISO image
-    cp /root/preseed.cfg image/preseed.cfg
+    cp chroot/root/preseed.cfg image/preseed.cfg
 
     # generate manifest
     echo -e "Generating filesystem manifest..."
