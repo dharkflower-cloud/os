@@ -34,24 +34,23 @@ export TARGET_PACKAGE_REMOVE="
 # present on the installed system.
 function customize_image() {
     # install graphics and desktop
-    apt-get install -y \
-    plymouth-theme-ubuntu-logo \
-    cinnamon
+    echo "Installing Cinnamon..."
+    apt-get install -y cinnamon >/dev/null
 
     # Set the bootloader logo
-    cp assets/Protoflower_bootloader.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
+    cp /mnt/data/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
 
     # Set the user and login screen backgrounds
     mkdir -p /usr/share/backgrounds
-    cp assets/solid-color-image.png /usr/share/backgrounds/user-background.png
-    cp assets/bg-large.png /usr/share/backgrounds/login-background.png
+    cp /mnt/data/assets/solid-color-image.png /usr/share/backgrounds/user-background.png
+    cp /mnt/data/assets/bg-large.png /usr/share/backgrounds/login-background.png
 
     # Configure backgrounds
     gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
     gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
 
     # Replace installation slideshow with static image
-    cp assets/Protoflower_beta3_large_whitebg.png /usr/share/ubiquity-slideshow/slides/slides.png
+    cp /mnt/data/assets/Protoflower_beta3_large_whitebg.png /usr/share/ubiquity-slideshow/slides/slides.png
 
     # Create preseed file to skip location step
     echo "d-i time/zone string America/New_York" > /cdrom/preseed.cfg
@@ -59,6 +58,7 @@ function customize_image() {
     echo "d-i clock-setup/ntp boolean true" >> /cdrom/preseed.cfg
 
     # useful tools
+    echo "Installing useful tools..."
     apt-get install -y \
     clamav-daemon \
     terminator \
@@ -66,18 +66,16 @@ function customize_image() {
     curl \
     vim \
     nano \
-    less
+    less >/dev/null
 
     # purge
     apt-get purge -y \
-    transmission-gtk \
-    transmission-common \
     gnome-mahjongg \
     gnome-mines \
     gnome-sudoku \
     aisleriot \
-    hitori
+    hitori >/dev/null
 
     # Include flower.sh
-    . flower.sh
+    . /root/flower.sh
 }

@@ -39,8 +39,9 @@ EOF
     echo "$TARGET_NAME" > /etc/hostname
 
     # we need to install systemd first, to configure machine id
-    apt-get update
-    apt-get install -y libterm-readline-gnu-perl systemd-sysv
+    echo "Updating package list and installing systemd-sysv..."
+    apt-get update >/dev/null
+    apt-get install -y libterm-readline-gnu-perl systemd-sysv >/dev/null
 
     #configure machine id
     dbus-uuidgen > /etc/machine-id
@@ -53,31 +54,29 @@ EOF
 
 # Load configuration values from file
 function load_config() {
-    if [[ -f "$SCRIPT_DIR/config.sh" ]]; then 
-        . "$SCRIPT_DIR/config.sh"
-    else
-        >&2 echo "Unable to find config file $SCRIPT_DIR/config.sh, aborting."
-        exit 1
-    fi
+    . "$SCRIPT_DIR/config.sh"
 }
-
 
 function install_pkg() {
     echo "=====> running install_pkg ... will take a long time ..."
 
-    apt-get update
-    apt-get install -y software-properties-common
-    apt-get -y upgrade
+    apt-get update >/dev/null
+    echo "Installing software-properties-common and upgrading packages..."
+    apt-get install -y software-properties-common >/dev/null
+    apt-get -y upgrade >/dev/null
 
     # Add Cinnamon PPA and install Cinnamon
-    add-apt-repository -y ppa:ubuntucinnamonremix/all
-    apt-get update
-    apt-get install -y cinnamon
+    echo "Adding Cinnamon PPA and installing Cinnamon..."
+    add-apt-repository -y ppa:ubuntucinnamonremix/all >/dev/null
+    apt-get update >/dev/null
+    apt-get install -y cinnamon >/dev/null
 
     # Remove GNOME and Unity
-    apt-get remove -y ubuntu-gnome-desktop ubuntu-gnome-wallpapers
+    echo "Removing GNOME and Unity..."
+    apt-get remove -y ubuntu-gnome-desktop ubuntu-gnome-wallpapers >/dev/null
 
     # install live packages
+    echo "Installing live packages..."
     apt-get install -y \
     sudo \
     ubuntu-standard \
@@ -95,37 +94,31 @@ function install_pkg() {
     grub-pc \
     grub-pc-bin \
     grub2-common \
-    locales
-    
-    case $TARGET_UBUNTU_VERSION in
-        "focal" | "bionic")
-            apt-get install -y lupin-casper
-            ;;
-        *)
-            echo "Package lupin-casper is not needed. Skipping."
-            ;;
-    esac
+    locales >/dev/null
     
     # install kernel
-    apt-get install -y --no-install-recommends $TARGET_KERNEL_PACKAGE
+    echo "Installing kernel package..."
+    apt-get install -y --no-install-recommends $TARGET_KERNEL_PACKAGE >/dev/null
 
     # graphic installer - ubiquity
+    echo "Installing Ubiquity installer..."
     apt-get install -y \
     ubiquity \
     ubiquity-casper \
     ubiquity-frontend-gtk \
     ubiquity-slideshow-ubuntu \
-    ubiquity-ubuntu-artwork
+    ubiquity-ubuntu-artwork >/dev/null
 
     # Call into config function
     customize_image
 
     # remove unused and clean up apt cache
-    apt-get autoremove -y
+    echo "Removing unused packages and cleaning up apt cache..."
+    apt-get autoremove -y >/dev/null
 
     # final touch
-    dpkg-reconfigure locales
-    dpkg-reconfigure resolvconf
+    dpkg-reconfigure locales >/dev/null
+    dpkg-reconfigure resolvconf >/dev/null
 
     # network manager
     cat <<EOF > /etc/NetworkManager/NetworkManager.conf
@@ -138,9 +131,9 @@ dns=dnsmasq
 managed=false
 EOF
 
-    dpkg-reconfigure network-manager
+    dpkg-reconfigure network-manager >/dev/null
 
-    apt-get clean -y
+    apt-get clean -y >/dev/null
 }
 
 function finish_up() { 

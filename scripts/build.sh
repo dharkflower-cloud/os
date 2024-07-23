@@ -42,24 +42,20 @@ function chroot_exit_teardown() {
 
 # Load configuration values from file
 function load_config() {
-    if [[ -f "$SCRIPT_DIR/config.sh" ]]; then
-        . "$SCRIPT_DIR/config.sh"
-    else
-        >&2 echo "Unable to find config file $SCRIPT_DIR/config.sh, aborting."
-        exit 1
-    fi
+    . "$SCRIPT_DIR/config.sh"
 }
 
 function setup_host() {
     echo "=====> running setup_host ..."
-    sudo apt update
-    sudo apt install -y binutils debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools dosfstools unzip
+    sudo apt update >/dev/null
+    echo "Installing necessary packages for the host..."
+    sudo apt install -y binutils debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools dosfstools unzip >/dev/null
     sudo mkdir -p chroot
 }
 
 function debootstrap() {
     echo "=====> running debootstrap ... will take a couple of minutes ..."
-    sudo debootstrap  --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
+    sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR >/dev/null
 }
 
 function run_chroot() {
@@ -69,9 +65,7 @@ function run_chroot() {
 
     # Setup build scripts in chroot environment
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
-    if [[ -f "$SCRIPT_DIR/config.sh" ]]; then
-        sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
-    fi
+    sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
     # Copy assets to chroot environment
     sudo mkdir -p chroot/root/assets
@@ -82,9 +76,7 @@ function run_chroot() {
 
     # Cleanup after image changes
     sudo rm -f chroot/root/chroot_build.sh
-    if [[ -f "chroot/root/config.sh" ]]; then
-        sudo rm -f chroot/root/config.sh
-    fi
+    sudo rm -f chroot/root/config.sh
     sudo rm -rf chroot/root/assets
 
     chroot_exit_teardown
@@ -99,13 +91,6 @@ function build_iso() {
     # copy kernel files
     sudo cp chroot/boot/vmlinuz-**-**-generic image/casper/vmlinuz
     sudo cp chroot/boot/initrd.img-**-**-generic image/casper/initrd
-
-    # memtest86
-    sudo cp chroot/boot/memtest86+.bin image/install/memtest86+
-
-    wget --progress=dot https://www.memtest86.com/downloads/memtest86-usb.zip -O image/install/memtest86-usb.zip
-    unzip -p image/install/memtest86-usb.zip memtest86-usb.img > image/install/memtest86
-    rm -f image/install/memtest86-usb.zip
 
     # grub
     touch image/ubuntu
@@ -128,20 +113,21 @@ EOF
     cp /root/preseed.cfg image/preseed.cfg
 
     # generate manifest
-    sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest
+    sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest >/dev/null
     sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
     for pkg in $TARGET_PACKAGE_REMOVE; do
         sudo sed -i "/$pkg/d" image/casper/filesystem.manifest-desktop
     done
 
     # compress rootfs
+    echo "Compressing root filesystem..."
     sudo mksquashfs chroot image/casper/filesystem.squashfs \
         -noappend -no-duplicates -no-recovery \
         -wildcards \
         -e "var/cache/apt/archives/*" \
         -e "tmp/*" \
         -e "tmp/.*" \
-        -e "swapfile"
+        -e "swapfile" >/dev/null
     printf $(sudo du -sx --block-size=1 chroot | cut -f1) > image/casper/filesystem.size
 
     # create diskdefines
@@ -164,12 +150,12 @@ EOF
         --output=isolinux/bootx64.efi \
         --locales="" \
         --fonts="" \
-        "boot/grub/grub.cfg=isolinux/grub.cfg"
+        "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
 
     (
         cd isolinux && \
         dd if=/dev/zero of=efiboot.img bs=1M count=10 && \
-        sudo mkfs.vfat efiboot.img && \
+        sudo mkfs.vfat efiboot.img >/dev/null && \
         LC_CTYPE=C mmd -i efiboot.img efi efi/boot && \
         LC_CTYPE=C mcopy -i efiboot.img ./bootx64.efi ::efi/boot/
     )
@@ -181,12 +167,13 @@ EOF
         --modules="linux16 linux normal iso9660 biosdisk search" \
         --locales="" \
         --fonts="" \
-        "boot/grub/grub.cfg=isolinux/grub.cfg"
+        "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
 
     cat /usr/lib/grub/i386-pc/cdboot.img isolinux/core.img > isolinux/bios.img
 
-    sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v -e 'md5sum.txt' -e 'bios.img' -e 'efiboot.img' > md5sum.txt)"
+    sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v -e 'md5sum.txt' -e 'bios.img' -e 'efiboot.img' > md5sum.txt)" >/dev/null
 
+    echo "Creating ISO image..."
     sudo xorriso \
         -as mkisofs \
         -iso-level 3 \
@@ -209,7 +196,7 @@ EOF
         -graft-points \
            "/EFI/efiboot.img=isolinux/efiboot.img" \
            "/boot/grub/bios.img=isolinux/bios.img" \
-           "."
+           "." >/dev/null
 
     popd
 }
