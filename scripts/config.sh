@@ -39,6 +39,7 @@ function customize_image() {
         apt-utils >/dev/null
 
     # Set the bootloader logo
+    mkdir -p /usr/share/plymouth/themes/ubuntu-logo
     cp /root/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
 
     # Set the user and login screen backgrounds
