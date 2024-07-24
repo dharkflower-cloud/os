@@ -191,4 +191,4 @@ apt-get -y install \
     gh \
     guake \
     kdeconnect \
-    mpich >/dev/null
+    mpich
