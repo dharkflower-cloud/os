@@ -21,7 +21,7 @@ export TARGET_NAME="flower"
 # The text label shown in GRUB for starting installation
 export GRUB_INSTALL_LABEL="Install Flower Linux"
 
-# Packages to be removed from the target system after installation completes succesfully
+# Packages to be removed from the target system after installation completes successfully
 export TARGET_PACKAGE_REMOVE="
     ubiquity
     casper
@@ -30,30 +30,35 @@ export TARGET_PACKAGE_REMOVE="
     os-prober
 "
 
-# Package customisation function. Update this function to customize packages
-# present on the installed system.
-function customize_image() {
-
-    # Include flower.sh
-    . $SCRIPT_DIR/flower.sh
-
-    # Set the bootloader logo
+# Customization functions
+function set_bootloader_logo() {
     mkdir -p /usr/share/plymouth/themes/ubuntu-logo
     cp $SCRIPT_DIR/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
+}
 
-    # Set the user and login screen backgrounds
+function set_backgrounds() {
     mkdir -p /usr/share/backgrounds
     cp $SCRIPT_DIR/assets/user-background-image.png /usr/share/backgrounds/user-background.png
     cp $SCRIPT_DIR/assets/login-background.png /usr/share/backgrounds/login-background.png
 
     sudo cp $SCRIPT_DIR/assets/solid-color-image.png chroot/root/assets/
 
-    # Configure backgrounds
     gsettings set org.cinnamon.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
     gsettings set org.cinnamon.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
+}
 
-    # Replace installation slideshow with static image
+function replace_slideshow() {
     mkdir -p /usr/share/ubiquity-slideshow/slides
     cp $SCRIPT_DIR/assets/solid-color-image.png /usr/share/ubiquity-slideshow/slides/slides.png
+}
 
+# Package customization function
+function customize_image() {
+    # Include flower.sh
+    . $SCRIPT_DIR/flower.sh
+
+    # Customization steps
+    set_bootloader_logo
+    set_backgrounds
+    replace_slideshow
 }

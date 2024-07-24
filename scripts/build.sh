@@ -64,7 +64,7 @@ function setup_host() {
 
 function debootstrap() {
     echo "=====> running debootstrap ... will take a couple of minutes ..."
-    sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
+    sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR >/dev/null
 }
 
 function run_chroot() {
@@ -76,11 +76,66 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
+    # Check permissions of chroot/root directory
+    echo "Checking permissions of chroot/root directory..."
+    ls -ld chroot/root
+
+    # Ensure the assets directory exists in the chroot environment
+    echo "Creating assets directory in chroot environment..."
+    sudo mkdir -p chroot/root/assets
+
+    # Verify directory creation
+    if [ ! -d "chroot/root/assets" ]; then
+        echo "Failed to create assets directory in chroot environment!"
+        echo "Permissions of chroot/root directory:"
+        ls -ld chroot/root
+        exit 1
+    else
+        echo "Assets directory created successfully."
+    fi
+
+    # Check source directory and files
+    if [ ! -d "$SCRIPT_DIR/assets" ]; then
+        echo "Source assets directory does not exist: $SCRIPT_DIR/assets"
+        exit 1
+    else
+        echo "Source assets directory exists."
+    fi
+
+    if [ -z "$(ls -A $SCRIPT_DIR/assets)" ]; then
+        echo "Source assets directory is empty: $SCRIPT_DIR/assets"
+        exit 1
+    else
+        echo "Source assets directory contains files."
+    fi
+
+    # Copy assets to chroot environment
+    echo "Copying assets to chroot environment..."
+    sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
+    sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
+    sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
+
+    # Verify files in chroot environment
+    if [ -z "$(ls -A chroot/root/assets)" ]; then
+        echo "Failed to copy assets to chroot environment!"
+        exit 1
+    else
+        echo "Assets copied successfully to chroot environment."
+    fi
+
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
 
+    # Cleanup after image changes
+    sudo rm -f chroot/root/chroot_build.sh
+    sudo rm -f chroot/root/config.sh
+    sudo rm -rf chroot/root/assets
+    sudo rm -f chroot/root/preseed.cfg
+    sudo rm -f chroot/root/flower.sh
+
     chroot_exit_teardown
 }
+
 
 function build_iso() {
     echo "=====> running build_iso ..."

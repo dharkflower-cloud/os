@@ -46,7 +46,7 @@ EOF
         systemd-sysv \
         apt-utils >/dev/null
 
-    #configure machine id
+    # configure machine id
     dbus-uuidgen > /etc/machine-id
     ln -fs /etc/machine-id /var/lib/dbus/machine-id
 
@@ -118,15 +118,6 @@ function install_pkg() {
         ubiquity-frontend-gtk \
         ubiquity-ubuntu-artwork >/dev/null
 
-    # Ensure the assets directory exists
-    echo "Creating assets directory..."
-    mkdir -p /root/assets
-
-    # Copy assets into chroot environment
-    cp $SCRIPT_DIR/assets/* /root/assets/
-    cp $SCRIPT_DIR/flower.sh /root/flower.sh
-    cp $SCRIPT_DIR/preseed.cfg /root/preseed.cfg
-
     # Call into config function
     customize_image
 
@@ -157,10 +148,10 @@ EOF
 function finish_up() { 
     echo "=====> finish_up"
 
-    # truncate machine id (why??)
+    # truncate machine id
     truncate -s 0 /etc/machine-id
 
-    # remove diversion (why??)
+    # remove diversion
     rm /sbin/initctl
     dpkg-divert --rename --remove /sbin/initctl
 
