@@ -63,7 +63,7 @@ function debootstrap() {
 }
 
 function copy_assets_to_chroot() {
-    echo "=====> Copying assets directory to chroot environment ..."
+    echo "=====> Attempting to copy assets directory to chroot environment ..."
 
     if [ ! -d "$SCRIPT_DIR/assets" ]; then
         echo "Assets directory not found in $SCRIPT_DIR"
@@ -73,17 +73,40 @@ function copy_assets_to_chroot() {
     echo "Contents of $SCRIPT_DIR/assets before copy:"
     ls -l "$SCRIPT_DIR/assets"
 
-    # Ensure chroot/root/assets directory exists
-    sudo mkdir -p chroot/root/assets
+    declare -a paths=(
+        "chroot/root"
+        "chroot"
+        "chroot/assets"
+        "chroot/root/assets"
+    )
 
-    # Copy each file with logging and set permissions
-    for file in "$SCRIPT_DIR/assets"/*; do
-        echo "Copying from $file to chroot/root/assets/"
-        sudo cp -v "$file" "chroot/root/assets/"
+    for path in "${paths[@]}"; do
+        echo "Checking if directory $path exists ..."
+        if [ ! -d "$path" ]; then
+            echo "Creating directory $path ..."
+            sudo mkdir -p "$path"
+        fi
     done
 
-    # Ensure proper permissions for copied files
-    sudo chmod -R 755 chroot/root/assets
+    declare -a methods=(
+        "sudo cp -r"
+        "cp -r"
+        "sudo cp"
+        "cp"
+    )
+
+    for method in "${methods[@]}"; do
+        echo "Trying method: $method"
+        for file in "$SCRIPT_DIR/assets"/*; do
+            dest="chroot/root/assets/$(basename "$file")"
+            echo "Copying $file to $dest using $method"
+            if ! $method "$file" "$dest"; then
+                echo "Failed to copy $file to $dest using $method"
+            else
+                echo "Successfully copied $file to $dest using $method"
+            fi
+        done
+    done
 
     echo "Contents of chroot/root/assets after copy:"
     sudo ls -l "chroot/root/assets"
