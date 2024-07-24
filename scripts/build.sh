@@ -77,7 +77,7 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
     # Ensure the assets directory exists in the chroot environment
-    sudo mkdir -p chroot/root/assets
+    sudo chroot chroot mkdir -p /root/assets
 
     # Create preseed file to skip location step
     echo "d-i time/zone string America/Denver" > $SCRIPT_DIR/preseed.cfg
