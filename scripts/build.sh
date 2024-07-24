@@ -62,16 +62,6 @@ function debootstrap() {
     sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
 }
 
-function check_and_create_directory() {
-    local dir=$1
-    if [ ! -d "$dir" ]; then
-        echo "Directory $dir does not exist. Creating..."
-        sudo mkdir -p "$dir"
-    else
-        echo "Directory $dir already exists."
-    fi
-}
-
 function copy_assets_to_chroot() {
     echo "=====> Attempting to copy assets directory to chroot environment ..."
 
@@ -83,13 +73,11 @@ function copy_assets_to_chroot() {
     echo "Contents of $SCRIPT_DIR/assets before copy:"
     ls -l "$SCRIPT_DIR/assets"
 
-    # Check and create necessary directories
-    check_and_create_directory "chroot"
-    check_and_create_directory "chroot/root"
-    check_and_create_directory "chroot/root/assets"
+    # Check and create necessary directories inside chroot
+    sudo chroot chroot /bin/bash -c "mkdir -p /root/assets"
 
     echo "Directory structure before copying assets:"
-    tree chroot
+    sudo chroot chroot /bin/bash -c "ls -l /root"
 
     declare -a methods=(
         "sudo cp -r"
@@ -101,18 +89,17 @@ function copy_assets_to_chroot() {
     for method in "${methods[@]}"; do
         echo "Trying method: $method"
         for file in "$SCRIPT_DIR/assets"/*; do
-            dest="chroot/root/assets/$(basename "$file")"
-            echo "Copying $file to $dest using $method"
-            if ! $method "$file" "$dest"; then
-                echo "Failed to copy $file to $dest using $method"
+            echo "Copying $file to chroot/root/assets using $method"
+            if ! sudo cp "$file" "chroot/root/assets/"; then
+                echo "Failed to copy $file using $method"
             else
-                echo "Successfully copied $file to $dest using $method"
+                echo "Successfully copied $file using $method"
             fi
         done
     done
 
     echo "Contents of chroot/root/assets after copy:"
-    sudo ls -l "chroot/root/assets"
+    sudo chroot chroot /bin/bash -c "ls -l /root/assets"
 }
 
 function run_chroot() {
