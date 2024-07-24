@@ -37,9 +37,7 @@ function customize_image() {
     # Include flower.sh
     . /root/flower.sh
 
-    apt-get install -y lightdm
-    dpkg-reconfigure lightdm
-    echo "user-session=cinnamon" | tee -a /etc/lightdm/lightdm.conf
+
 
     # Set the bootloader logo
     mkdir -p /usr/share/plymouth/themes/ubuntu-logo
