@@ -35,16 +35,16 @@ export TARGET_PACKAGE_REMOVE="
 function customize_image() {
 
     # Include flower.sh
-    . /root/flower.sh
+    . $SCRIPT_DIR/flower.sh
 
     # Set the bootloader logo
     mkdir -p /usr/share/plymouth/themes/ubuntu-logo
-    cp /root/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
+    cp $SCRIPT_DIR/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
 
     # Set the user and login screen backgrounds
     mkdir -p /usr/share/backgrounds
-    cp /root/assets/user-background-image.png /usr/share/backgrounds/user-background.png
-    cp /root/assets/login-background.png /usr/share/backgrounds/login-background.png
+    cp $SCRIPT_DIR/assets/user-background-image.png /usr/share/backgrounds/user-background.png
+    cp $SCRIPT_DIR/assets/login-background.png /usr/share/backgrounds/login-background.png
 
     sudo cp $SCRIPT_DIR/assets/solid-color-image.png chroot/root/assets/
 
@@ -54,10 +54,6 @@ function customize_image() {
 
     # Replace installation slideshow with static image
     mkdir -p /usr/share/ubiquity-slideshow/slides
-    cp /root/assets/solid-color-image.png /usr/share/ubiquity-slideshow/slides/slides.png
+    cp $SCRIPT_DIR/assets/solid-color-image.png /usr/share/ubiquity-slideshow/slides/slides.png
 
-    # Create preseed file to skip location step
-    echo "d-i time/zone string America/Denver" > /root/preseed.cfg
-    echo "d-i clock-setup/utc boolean true" >> /root/preseed.cfg
-    echo "d-i clock-setup/ntp boolean true" >> /root/preseed.cfg
 }

@@ -76,8 +76,15 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
-    # Copy assets to chroot environment
+    # Ensure the assets directory exists in the chroot environment
     sudo mkdir -p chroot/root/assets
+
+    # Create preseed file to skip location step
+    echo "d-i time/zone string America/Denver" > $SCRIPT_DIR/preseed.cfg
+    echo "d-i clock-setup/utc boolean true" >> $SCRIPT_DIR/preseed.cfg
+    echo "d-i clock-setup/ntp boolean true" >> $SCRIPT_DIR/preseed.cfg
+
+    # Copy assets to chroot environment
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
     sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
     sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
