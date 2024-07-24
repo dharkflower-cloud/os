@@ -76,6 +76,20 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
+    # Ensure the chroot/root directory exists
+    if [ ! -d "chroot/root" ]; then
+        echo "Creating chroot/root directory..."
+        sudo mkdir -p chroot/root
+        if [ ! -d "chroot/root" ]; then
+            echo "Failed to create chroot/root directory!"
+            exit 1
+        else
+            echo "chroot/root directory created successfully."
+        fi
+    else
+        echo "chroot/root directory already exists."
+    fi
+
     # Ensure the assets directory exists in the chroot environment
     echo "Creating assets directory in chroot environment..."
     sudo mkdir -p chroot/root/assets
@@ -129,6 +143,7 @@ function run_chroot() {
 
     chroot_exit_teardown
 }
+
 
 
 
