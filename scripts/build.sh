@@ -11,6 +11,18 @@ CMD=(setup_host debootstrap run_chroot build_iso)
 
 DATE=`TZ="UTC" date +"%y%m%d-%H%M%S"`
 
+# List of essential files
+ESSENTIAL_FILES=(
+    "$SCRIPT_DIR/assets/ubuntu-logo.png"
+    "$SCRIPT_DIR/assets/Protoflower_beta3_large_whitebg.png"
+    "$SCRIPT_DIR/assets/Protoflower_bootloader.png"
+    "$SCRIPT_DIR/assets/login-background.png"
+    "$SCRIPT_DIR/assets/output (2).png"
+    "$SCRIPT_DIR/assets/solid-color-image.png"
+    "$SCRIPT_DIR/assets/user-background-image.png"
+    "$SCRIPT_DIR/assets/user-background.png"
+)
+
 function find_index() {
     local ret;
     local i;
@@ -65,6 +77,17 @@ function setup_host() {
 function debootstrap() {
     echo "=====> running debootstrap ... will take a couple of minutes ..."
     sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
+}
+
+function verify_essential_files() {
+    echo "=====> verifying essential files ..."
+    for file in "${ESSENTIAL_FILES[@]}"; do
+        if [ ! -f "$file" ]; then
+            echo "Essential file missing: $file"
+            exit 1
+        fi
+    done
+    echo "All essential files are present."
 }
 
 function run_chroot() {
@@ -222,6 +245,8 @@ EOF
 cd $SCRIPT_DIR
 
 load_config
+
+verify_essential_files
 
 # check number of args
 if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
