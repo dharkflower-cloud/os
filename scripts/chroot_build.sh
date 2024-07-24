@@ -74,14 +74,9 @@ function install_pkg() {
 
     # Add Cinnamon PPA and install Cinnamon
     echo "Adding Cinnamon PPA and installing Cinnamon..."
-    add-apt-repository -y ppa:ubuntucinnamonremix/all >/dev/null
+    add-apt-repository -y ppa:ubuntucinnamonremix/all
     apt-get update >/dev/null
-    apt-get install -y \
-        ubuntucinnamon-environment \
-        ubuntucinnamon-desktop-minimal \
-        ubuntucinnamon-lightdm-theme \
-        ubuntucinnamon-lightdm-theme \
-        ubuntucinnamon-wallpapers-noble >/dev/null
+    apt-get install ubuntucinnamon-environment
 
     # Remove GNOME and Unity
     echo "Removing GNOME and Unity..."
