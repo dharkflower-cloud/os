@@ -143,6 +143,10 @@ EOF
     dpkg-reconfigure network-manager >/dev/null
 
     apt-get clean -y >/dev/null
+
+    # Run flower.sh
+    echo "Running flower.sh..."
+    /bin/bash /root/flower.sh
 }
 
 function finish_up() { 

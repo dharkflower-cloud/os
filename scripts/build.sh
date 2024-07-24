@@ -76,6 +76,7 @@ function run_chroot() {
     sudo cp $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo cp $SCRIPT_DIR/config.sh chroot/root/config.sh
     sudo cp -r $SCRIPT_DIR/assets chroot/root/assets
+    sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
