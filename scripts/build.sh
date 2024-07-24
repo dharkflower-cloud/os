@@ -76,9 +76,16 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
-    # Check permissions of chroot/root directory
-    echo "Checking permissions of chroot/root directory..."
-    ls -ld chroot/root
+    # Check if SELinux or AppArmor is enabled and disable temporarily
+    if command -v getenforce &> /dev/null; then
+        echo "Disabling SELinux temporarily..."
+        sudo setenforce 0
+    fi
+
+    if command -v apparmor_status &> /dev/null; then
+        echo "Stopping AppArmor temporarily..."
+        sudo systemctl stop apparmor
+    fi
 
     # Ensure the assets directory exists in the chroot environment
     echo "Creating assets directory in chroot environment..."
@@ -92,6 +99,17 @@ function run_chroot() {
         exit 1
     else
         echo "Assets directory created successfully."
+    fi
+
+    # Re-enable SELinux or AppArmor if they were disabled
+    if command -v getenforce &> /dev/null; then
+        echo "Re-enabling SELinux..."
+        sudo setenforce 1
+    fi
+
+    if command -v apparmor_status &> /dev/null; then
+        echo "Starting AppArmor..."
+        sudo systemctl start apparmor
     fi
 
     # Check source directory and files
@@ -135,6 +153,7 @@ function run_chroot() {
 
     chroot_exit_teardown
 }
+
 
 
 function build_iso() {
