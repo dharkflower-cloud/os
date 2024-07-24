@@ -163,6 +163,18 @@ function install_dart() {
     apt-get -y install dart >/dev/null
 }
 
+function install_flutter() {
+    echo "Installing Flutter..."
+
+    apt-get update -y && apt-get upgrade -y;
+    apt-get install -y curl git unzip xz-utils zip libglu1-mesa
+    apt-get install libc6:amd64 libstdc++6:amd64 libbz2-1.0:amd64 libncurses5:amd64
+
+    wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.22.3-stable.tar.xz
+    tar -xf flutter_linux_3.22.3-stable.tar.xz -C /usr/bin/
+    echo 'export PATH="/usr/bin/flutter/bin:$PATH"' >> ~/.bash_profile
+}
+
 function install_swift() {
     echo "Installing Swift..."
     apt-get -y install clang libpython3-all-dev >/dev/null
@@ -212,6 +224,17 @@ function install_various_utilities() {
         kdeconnect
 }
 
+function install_jenkins() {
+    echo "Installing Jenkins..."
+    wget -O /usr/share/keyrings/jenkins-keyring.asc \
+      https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
+      https://pkg.jenkins.io/debian-stable binary/ | tee \
+      /etc/apt/sources.list.d/jenkins.list > /dev/null
+    apt-get update >/dev/null
+    apt-get install jenkins >/dev/null
+}
+
 # Execute all installation functions
 install_flower_applications
 install_node
@@ -229,9 +252,11 @@ install_gradle
 install_aws_cli
 install_docker
 install_dart
+install_flutter
 install_swift
 install_golang
 install_rust
 install_r
 install_spotify
+install_jenkins
 install_various_utilities

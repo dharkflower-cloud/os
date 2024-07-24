@@ -118,15 +118,6 @@ function install_pkg() {
         ubiquity-frontend-gtk \
         ubiquity-ubuntu-artwork >/dev/null
 
-    # Ensure the assets directory exists
-    echo "Creating assets directory..."
-    mkdir -p /root/assets
-
-    # Copy assets into chroot environment
-    cp /root/assets/* /root/assets/
-    cp /root/flower.sh /root/flower.sh
-    cp /root/preseed.cfg /root/preseed.cfg
-
     # Call into config function
     customize_image
 
