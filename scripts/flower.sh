@@ -19,7 +19,7 @@ function install_flower_applications() {
 
 function install_node() {
     echo "Installing Node.js and NPM..."
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install nodejs npm >/dev/null
     npm install -g n >/dev/null
     n stable >/dev/null
@@ -57,7 +57,7 @@ function install_chrome() {
     echo "Installing Google Chrome..."
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add - >/dev/null
     echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install google-chrome-stable >/dev/null
 }
 
@@ -71,7 +71,7 @@ function install_java() {
 function install_php() {
     echo "Installing PHP..."
     add-apt-repository -y ppa:ondrej/php >/dev/null
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install php8.3-{apcu,bz2,cgi,cli,common,curl,dba,dev,fpm,gd,gearman,gmp,gnupg,http,igbinary,imagick,imap,interbase,intl,ldap,mbstring,mcrypt,memcache,memcached,mongodb,msgpack,mysql,oauth,opcache,pgsql,pspell,psr,raphf,readline,redis,smbclient,soap,solr,sqlite3,ssh2,sybase,tidy,uploadprogress,uuid,xdebug,xml,xmlrpc,xsl,yaml,zip} >/dev/null
 }
 
@@ -118,7 +118,7 @@ function install_databases() {
 function install_database_gui() {
     echo "Installing database GUI..."
     add-apt-repository -y ppa:serge-rider/dbeaver-ce >/dev/null
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install dbeaver-ce >/dev/null
 }
 
@@ -141,8 +141,8 @@ function install_aws_cli() {
 
 function install_docker() {
     echo "Installing Docker..."
-    apt-get update >/dev/null
-    apt-get install ca-certificates >/dev/null
+    apt-get update -y >/dev/null
+    apt-get install -y ca-certificates >/dev/null
     install -m 0755 -d /etc/apt/keyrings >/dev/null
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc >/dev/null
     chmod a+r /etc/apt/keyrings/docker.asc
@@ -150,7 +150,7 @@ function install_docker() {
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
       $(. /etc/os-release && echo "$TARGET_UBUNTU_VERSION") stable" | \
       tee /etc/apt/sources.list.d/docker.list > /dev/null
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >/dev/null
 }
 
@@ -159,7 +159,7 @@ function install_dart() {
     git clone https://github.com/dart-lang/sdk.git /usr/local/src/dart-sdk >/dev/null
     sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -' >/dev/null
     sh -c 'curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list' >/dev/null
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install dart >/dev/null
 }
 
@@ -168,7 +168,7 @@ function install_flutter() {
 
     apt-get update -y && apt-get upgrade -y;
     apt-get install -y curl git unzip xz-utils zip libglu1-mesa
-    apt-get install libc6:amd64 libstdc++6:amd64 libbz2-1.0:amd64 libncurses5:amd64
+    apt-get install -y libc6:amd64 libstdc++6:amd64 libbz2-1.0:amd64 libncurses5:amd64
 
     wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.22.3-stable.tar.xz
     tar -xf flutter_linux_3.22.3-stable.tar.xz -C /usr/bin/
@@ -204,7 +204,7 @@ function install_rust() {
 function install_r() {
     echo "Installing R..."
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 >/dev/null
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install r-base >/dev/null
 }
 
@@ -212,7 +212,7 @@ function install_spotify() {
     echo "Installing Spotify..."
     curl -sS https://download.spotify.com/debian/pubkey_6224F9941A8AA6D1.gpg | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/spotify.gpg >/dev/null
     echo "deb http://repository.spotify.com stable non-free" | tee /etc/apt/sources.list.d/spotify.list >/dev/null
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get -y install spotify-client >/dev/null
 }
 
@@ -231,8 +231,8 @@ function install_jenkins() {
     echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
       https://pkg.jenkins.io/debian-stable binary/ | tee \
       /etc/apt/sources.list.d/jenkins.list > /dev/null
-    apt-get update >/dev/null
-    apt-get install jenkins >/dev/null
+    apt-get update -y >/dev/null
+    apt-get install -y jenkins >/dev/null
 }
 
 # Execute all installation functions

@@ -40,7 +40,7 @@ EOF
 
     # we need to install systemd first, to configure machine id
     echo "Updating package list and installing systemd-sysv..."
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get install -y \
         libterm-readline-gnu-perl \
         systemd-sysv \
@@ -64,7 +64,7 @@ function install_pkg() {
     echo "=====> running install_pkg ... will take a long time ..."
 
     # Attempting to fix session start bug
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get install -y lightdm apt-utils
     dpkg-reconfigure lightdm
 
@@ -75,7 +75,7 @@ function install_pkg() {
     # Add Cinnamon PPA and install Cinnamon
     echo "Adding Cinnamon PPA and installing Cinnamon..."
     add-apt-repository -y ppa:ubuntucinnamonremix/all
-    apt-get update >/dev/null
+    apt-get update -y >/dev/null
     apt-get install -y ubuntucinnamon-environment
 
     # Remove GNOME and Unity
@@ -104,7 +104,7 @@ function install_pkg() {
         grub-pc-bin \
         grub2-common \
         locales >/dev/null
-    
+
     # install kernel
     echo "Installing kernel package..."
     apt-get install -y --no-install-recommends \

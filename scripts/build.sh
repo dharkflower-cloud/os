@@ -48,7 +48,7 @@ function load_config() {
 function setup_host() {
     echo "=====> running setup_host ..."
     echo -e "Updating package list and installing necessary packages for the host..."
-    sudo apt update >/dev/null
+    sudo apt update -y >/dev/null
     sudo apt install -y \
         binutils \
         debootstrap \
@@ -97,7 +97,6 @@ function build_iso() {
     # grub
     touch image/ubuntu
     cat <<EOF > image/isolinux/grub.cfg
-
 search --set=root --file /ubuntu
 
 insmod all_video
