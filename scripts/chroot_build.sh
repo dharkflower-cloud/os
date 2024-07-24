@@ -25,7 +25,7 @@ function find_index() {
 function setup_host() {
     echo "=====> running setup_host ..."
 
-   cat <<EOF > /etc/apt/sources.list
+    cat <<EOF > /etc/apt/sources.list
 deb $TARGET_UBUNTU_MIRROR $TARGET_UBUNTU_VERSION main restricted universe multiverse
 deb-src $TARGET_UBUNTU_MIRROR $TARGET_UBUNTU_VERSION main restricted universe multiverse
 
@@ -117,6 +117,15 @@ function install_pkg() {
         ubiquity-casper \
         ubiquity-frontend-gtk \
         ubiquity-ubuntu-artwork >/dev/null
+
+    # Ensure the assets directory exists
+    echo "Creating assets directory..."
+    mkdir -p /root/assets
+
+    # Copy assets into chroot environment
+    cp $SCRIPT_DIR/assets/* /root/assets/
+    cp $SCRIPT_DIR/flower.sh /root/flower.sh
+    cp $SCRIPT_DIR/preseed.cfg /root/preseed.cfg
 
     # Call into config function
     customize_image
