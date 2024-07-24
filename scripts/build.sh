@@ -73,18 +73,11 @@ function copy_assets_to_chroot() {
     echo "Contents of $SCRIPT_DIR/assets before copy:"
     ls -l "$SCRIPT_DIR/assets"
 
-    declare -a paths=(
-        "chroot/root"
-        "chroot"
-        "chroot/assets"
-        "chroot/root/assets"
-    )
-
-    for path in "${paths[@]}"; do
-        echo "Checking if directory $path exists ..."
-        if [ ! -d "$path" ]; then
-            echo "Creating directory $path ..."
-            sudo mkdir -p "$path"
+    # Check and create necessary directories
+    for dir in "chroot" "chroot/root" "chroot/root/assets"; do
+        if [ ! -d "$dir" ]; then
+            echo "Creating directory $dir ..."
+            sudo mkdir -p "$dir"
         fi
     done
 
