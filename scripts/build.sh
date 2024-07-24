@@ -65,18 +65,25 @@ function debootstrap() {
 function copy_assets_to_chroot() {
     echo "=====> Copying assets directory to chroot environment ..."
 
-    # Ensure chroot/root/assets directory exists and copy assets
-    sudo mkdir -p chroot/root/assets
-    sudo cp -r "$SCRIPT_DIR/assets/." "chroot/root/assets/"
+    if [ ! -d "$SCRIPT_DIR/assets" ]; then
+        echo "Assets directory not found in $SCRIPT_DIR"
+        exit 1
+    fi
 
-    # Verify files are copied
+    echo "Contents of $SCRIPT_DIR/assets before copy:"
+    ls -l "$SCRIPT_DIR/assets"
+
+    # Ensure chroot/root/assets directory exists
+    sudo mkdir -p chroot/root/assets
+
+    # Copy each file with logging
     for file in "$SCRIPT_DIR/assets"/*; do
-        if [ ! -f "chroot/root/assets/$(basename "$file")" ]; then
-            echo "File missing after copy: $(basename "$file")"
-            exit 1
-        fi
+        echo "Copying from $file to chroot/root/assets/"
+        sudo cp -v "$file" "chroot/root/assets/"
     done
-    echo "All files copied successfully."
+
+    echo "Contents of chroot/root/assets after copy:"
+    ls -l "chroot/root/assets"
 }
 
 function run_chroot() {
