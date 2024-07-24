@@ -46,7 +46,7 @@ EOF
         systemd-sysv \
         apt-utils >/dev/null
 
-    # configure machine id
+    #configure machine id
     dbus-uuidgen > /etc/machine-id
     ln -fs /etc/machine-id /var/lib/dbus/machine-id
 
@@ -123,9 +123,9 @@ function install_pkg() {
     mkdir -p /root/assets
 
     # Copy assets into chroot environment
-    cp $SCRIPT_DIR/assets/* /root/assets/
-    cp $SCRIPT_DIR/flower.sh /root/flower.sh
-    cp $SCRIPT_DIR/preseed.cfg /root/preseed.cfg
+    cp /root/assets/* /root/assets/
+    cp /root/flower.sh /root/flower.sh
+    cp /root/preseed.cfg /root/preseed.cfg
 
     # Call into config function
     customize_image
