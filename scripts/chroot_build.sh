@@ -64,10 +64,10 @@ function install_pkg() {
     echo "=====> running install_pkg ... will take a long time ..."
 
     # Attempting to fix session start bug
-    apt-get install lightdm
+    apt-get update >/dev/null
+    apt-get install -y lightdm apt-utils
     dpkg-reconfigure lightdm
 
-    apt-get update >/dev/null
     echo "Installing software-properties-common and upgrading packages..."
     apt-get install -y software-properties-common >/dev/null
     apt-get -y upgrade >/dev/null
