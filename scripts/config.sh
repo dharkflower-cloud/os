@@ -37,8 +37,6 @@ function customize_image() {
     # Include flower.sh
     . /root/flower.sh
 
-
-
     # Set the bootloader logo
     mkdir -p /usr/share/plymouth/themes/ubuntu-logo
     cp /root/assets/ubuntu-logo.png /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.png
@@ -47,6 +45,8 @@ function customize_image() {
     mkdir -p /usr/share/backgrounds
     cp /root/assets/user-background-image.png /usr/share/backgrounds/user-background.png
     cp /root/assets/login-background.png /usr/share/backgrounds/login-background.png
+
+    sudo cp $SCRIPT_DIR/assets/solid-color-image.png chroot/root/assets/
 
     # Configure backgrounds
     gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
