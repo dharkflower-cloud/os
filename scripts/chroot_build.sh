@@ -63,6 +63,10 @@ function load_config() {
 function install_pkg() {
     echo "=====> running install_pkg ... will take a long time ..."
 
+    # Attempting to fix session start bug
+    apt-get install lightdm
+    dpkg-reconfigure lightdm
+
     apt-get update >/dev/null
     echo "Installing software-properties-common and upgrading packages..."
     apt-get install -y software-properties-common >/dev/null
@@ -73,12 +77,11 @@ function install_pkg() {
     add-apt-repository -y ppa:ubuntucinnamonremix/all >/dev/null
     apt-get update >/dev/null
     apt-get install -y \
-        cinnamon \
-        cinnamon-core \
-        cinnamon-session \
-        cinnamon-session-common \
-        cinnamon-settings-daemon \
-        cinnamon-desktop-environment >/dev/null
+        ubuntucinnamon-environment \
+        ubuntucinnamon-desktop-minimal \
+        ubuntucinnamon-lightdm-theme \
+        ubuntucinnamon-lightdm-theme \
+        ubuntucinnamon-wallpapers-noble >/dev/null
 
     # Remove GNOME and Unity
     echo "Removing GNOME and Unity..."
