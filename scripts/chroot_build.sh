@@ -118,6 +118,15 @@ function install_pkg() {
         ubiquity-frontend-gtk \
         ubiquity-ubuntu-artwork >/dev/null
 
+    # Ensure the assets directory exists
+    echo "Creating assets directory..."
+    mkdir -p /root/assets
+
+    # Copy assets into chroot environment
+    cp $SCRIPT_DIR/assets/* /root/assets/
+    cp $SCRIPT_DIR/flower.sh /root/flower.sh
+    cp $SCRIPT_DIR/preseed.cfg /root/preseed.cfg
+
     # Call into config function
     customize_image
 
@@ -148,10 +157,10 @@ EOF
 function finish_up() { 
     echo "=====> finish_up"
 
-    # truncate machine id
+    # truncate machine id (why??)
     truncate -s 0 /etc/machine-id
 
-    # remove diversion
+    # remove diversion (why??)
     rm /sbin/initctl
     dpkg-divert --rename --remove /sbin/initctl
 

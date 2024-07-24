@@ -64,7 +64,7 @@ function setup_host() {
 
 function debootstrap() {
     echo "=====> running debootstrap ... will take a couple of minutes ..."
-    sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR >/dev/null
+    sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
 }
 
 function run_chroot() {
@@ -76,66 +76,11 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
-    # Check permissions of chroot/root directory
-    echo "Checking permissions of chroot/root directory..."
-    ls -ld chroot/root
-
-    # Ensure the assets directory exists in the chroot environment
-    echo "Creating assets directory in chroot environment..."
-    sudo mkdir -p chroot/root/assets
-
-    # Verify directory creation
-    if [ ! -d "chroot/root/assets" ]; then
-        echo "Failed to create assets directory in chroot environment!"
-        echo "Permissions of chroot/root directory:"
-        ls -ld chroot/root
-        exit 1
-    else
-        echo "Assets directory created successfully."
-    fi
-
-    # Check source directory and files
-    if [ ! -d "$SCRIPT_DIR/assets" ]; then
-        echo "Source assets directory does not exist: $SCRIPT_DIR/assets"
-        exit 1
-    else
-        echo "Source assets directory exists."
-    fi
-
-    if [ -z "$(ls -A $SCRIPT_DIR/assets)" ]; then
-        echo "Source assets directory is empty: $SCRIPT_DIR/assets"
-        exit 1
-    else
-        echo "Source assets directory contains files."
-    fi
-
-    # Copy assets to chroot environment
-    echo "Copying assets to chroot environment..."
-    sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
-    sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
-    sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
-
-    # Verify files in chroot environment
-    if [ -z "$(ls -A chroot/root/assets)" ]; then
-        echo "Failed to copy assets to chroot environment!"
-        exit 1
-    else
-        echo "Assets copied successfully to chroot environment."
-    fi
-
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
 
-    # Cleanup after image changes
-    sudo rm -f chroot/root/chroot_build.sh
-    sudo rm -f chroot/root/config.sh
-    sudo rm -rf chroot/root/assets
-    sudo rm -f chroot/root/preseed.cfg
-    sudo rm -f chroot/root/flower.sh
-
     chroot_exit_teardown
 }
-
 
 function build_iso() {
     echo "=====> running build_iso ..."
@@ -170,127 +115,4 @@ EOF
     # generate manifest
     echo -e "Generating filesystem manifest..."
     sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest >/dev/null
-    sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
-    for pkg in $TARGET_PACKAGE_REMOVE; do
-        sudo sed -i "/$pkg/d" image/casper/filesystem.manifest-desktop
-    done
-
-    # compress rootfs
-    echo "Compressing root filesystem..."
-    sudo mksquashfs chroot image/casper/filesystem.squashfs \
-        -noappend -no-duplicates -no-recovery \
-        -wildcards \
-        -e "var/cache/apt/archives/*" \
-        -e "tmp/*" \
-        -e "tmp/.*" \
-        -e "swapfile" >/dev/null
-    printf $(sudo du -sx --block-size=1 chroot | cut -f1) > image/casper/filesystem.size
-
-    # create diskdefines
-    cat <<EOF > image/README.diskdefines
-#define DISKNAME  ${GRUB_INSTALL_LABEL}
-#define TYPE  binary
-#define TYPEbinary  1
-#define ARCH  amd64
-#define ARCHamd64  1
-#define DISKNUM  1
-#define DISKNUM1  1
-#define TOTALNUM  0
-#define TOTALNUM0  1
-EOF
-
-    # create iso image
-    echo "Creating ISO image..."
-    pushd $SCRIPT_DIR/image
-    grub-mkstandalone \
-        --format=x86_64-efi \
-        --output=isolinux/bootx64.efi \
-        --locales="" \
-        --fonts="" \
-        "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
-
-    (
-        cd isolinux && \
-        dd if=/dev/zero of=efiboot.img bs=1M count=10 && \
-        sudo mkfs.vfat efiboot.img >/dev/null && \
-        LC_CTYPE=C mmd -i efiboot.img efi efi/boot && \
-        LC_CTYPE=C mcopy -i efiboot.img ./bootx64.efi ::efi/boot/
-    )
-
-    grub-mkstandalone \
-        --format=i386-pc \
-        --output=isolinux/core.img \
-        --install-modules="linux16 linux normal iso9660 biosdisk memdisk search tar ls" \
-        --modules="linux16 linux normal iso9660 biosdisk search" \
-        --locales="" \
-        --fonts="" \
-        "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
-
-    cat /usr/lib/grub/i386-pc/cdboot.img isolinux/core.img > isolinux/bios.img
-
-    sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v -e 'md5sum.txt' -e 'bios.img' -e 'efiboot.img' > md5sum.txt)" >/dev/null
-
-    sudo xorriso \
-        -as mkisofs \
-        -iso-level 3 \
-        -full-iso9660-filenames \
-        -volid "$TARGET_NAME" \
-        -eltorito-boot boot/grub/bios.img \
-        -no-emul-boot \
-        -boot-load-size 1 \
-        -boot-info-table \
-        --eltorito-catalog boot/grub/boot.cat \
-        --grub2-boot-info \
-        --grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img \
-        -eltorito-alt-boot \
-        -e EFI/efiboot.img \
-        -no-emul-boot \
-        -append_partition 2 0xef isolinux/efiboot.img \
-        -output "$SCRIPT_DIR/$TARGET_NAME.iso" \
-        -m "isolinux/efiboot.img" \
-        -m "isolinux/bios.img" \
-        -graft-points \
-           "/EFI/efiboot.img=isolinux/efiboot.img" \
-           "/boot/grub/bios.img=isolinux/bios.img" \
-           "." >/dev/null
-
-    popd
-}
-
-# =============   main  ================
-
-# we always stay in $SCRIPT_DIR
-cd $SCRIPT_DIR
-
-load_config
-
-# check number of args
-if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
-
-# loop through args
-dash_flag=false
-start_index=0
-end_index=${#CMD[*]}
-for ii in "$@";
-do
-    if [[ $ii == "-" ]]; then
-        dash_flag=true
-        continue;
-    fi
-    find_index $ii
-    if [[ $dash_flag == false ]]; then
-        start_index=$index;
-    else
-        end_index=$(($index+1));
-    fi
-done
-if [[ $dash_flag == false ]]; then
-    end_index=$(($start_index + 1));
-fi
-
-#loop through the commands
-for ((ii=$start_index; ii<$end_index; ii++)); do
-    ${CMD[ii]}
-done
-
-echo "$0 - Initial build is done!"
+    sudo
