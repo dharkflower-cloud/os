@@ -62,37 +62,12 @@ function debootstrap() {
     sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
 }
 
-function verify_assets_directory() {
-    if [ ! -d "$SCRIPT_DIR/assets" ]; then
-        echo "Assets directory not found in $SCRIPT_DIR"
-        exit 1
-    fi
+function copy_assets_to_chroot() {
+    echo "=====> Copying assets directory to chroot environment ..."
 
-    echo "=====> Verifying assets directory and files in $SCRIPT_DIR ..."
-    for file in "$SCRIPT_DIR/assets"/*; do
-        if [ ! -f "$file" ]; then
-            echo "Missing file: $file"
-            exit 1
-        fi
-    done
-    echo "All asset files are present."
-}
-
-function copy_to_chroot() {
-    echo "=====> Copying files to chroot environment ..."
-
-    # Ensure chroot/root directory exists
-    if [ ! -d chroot/root ]; then
-        sudo mkdir -p chroot/root
-    fi
-
-    # Ensure chroot/root/assets directory exists
-    if [ ! -d chroot/root/assets ]; then
-        sudo mkdir -p chroot/root/assets
-    fi
-
-    echo "Copying assets directory to chroot environment..."
-    sudo cp -r "$SCRIPT_DIR/assets"/* "chroot/root/assets/"
+    # Ensure chroot/root/assets directory exists and copy assets
+    sudo mkdir -p chroot/root/assets
+    sudo cp -r "$SCRIPT_DIR/assets/." "chroot/root/assets/"
 
     # Verify files are copied
     for file in "$SCRIPT_DIR/assets"/*; do
@@ -108,9 +83,9 @@ function run_chroot() {
     echo "=====> running run_chroot ..."
 
     chroot_enter_setup
-    copy_to_chroot
 
-    # Setup build scripts in chroot environment
+    # Copy necessary files and directories
+    copy_assets_to_chroot
     sudo cp "$SCRIPT_DIR/chroot_build.sh" "chroot/root/chroot_build.sh"
     sudo cp "$SCRIPT_DIR/config.sh" "chroot/root/config.sh"
     sudo cp "$SCRIPT_DIR/flower.sh" "chroot/root/flower.sh"
@@ -196,8 +171,6 @@ EOF
 # Main Execution Flow
 cd "$SCRIPT_DIR"
 load_config
-
-verify_assets_directory
 
 if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
 
