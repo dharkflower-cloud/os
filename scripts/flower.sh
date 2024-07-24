@@ -1,14 +1,12 @@
 #!/bin/bash
 
 echo -e "Installing Flower Applications"
-
-echo -e "Installing useful tools..."
 apt-get install -y \
     clamav-daemon \
     terminator \
     apt-transport-https \
     software-properties-common \
-    apt-utils\
+    apt-utils \
     curl \
     vim \
     nano \

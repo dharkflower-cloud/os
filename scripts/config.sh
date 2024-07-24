@@ -49,8 +49,8 @@ function customize_image() {
     sudo cp $SCRIPT_DIR/assets/solid-color-image.png chroot/root/assets/
 
     # Configure backgrounds
-    gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
-    gsettings set org.gnome.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
+    gsettings set org.cinnamon.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
+    gsettings set org.cinnamon.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
 
     # Replace installation slideshow with static image
     mkdir -p /usr/share/ubiquity-slideshow/slides
