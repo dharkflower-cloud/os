@@ -76,14 +76,17 @@ function copy_assets_to_chroot() {
     # Ensure chroot/root/assets directory exists
     sudo mkdir -p chroot/root/assets
 
-    # Copy each file with logging
+    # Copy each file with logging and set permissions
     for file in "$SCRIPT_DIR/assets"/*; do
         echo "Copying from $file to chroot/root/assets/"
         sudo cp -v "$file" "chroot/root/assets/"
     done
 
+    # Ensure proper permissions for copied files
+    sudo chmod -R 755 chroot/root/assets
+
     echo "Contents of chroot/root/assets after copy:"
-    ls -l "chroot/root/assets"
+    sudo ls -l "chroot/root/assets"
 }
 
 function run_chroot() {
