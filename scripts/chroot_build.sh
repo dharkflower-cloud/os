@@ -65,8 +65,7 @@ function install_pkg() {
 
     apt-get update >/dev/null
     echo "Installing software-properties-common and upgrading packages..."
-    apt-get install -y \
-        software-properties-common >/dev/null
+    apt-get install -y software-properties-common >/dev/null
     apt-get -y upgrade >/dev/null
 
     # Add Cinnamon PPA and install Cinnamon
