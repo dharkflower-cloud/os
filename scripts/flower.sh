@@ -2,6 +2,21 @@
 
 echo -e "Installing Flower Applications"
 
+echo -e "Installing useful tools..."
+apt-get install -y \
+    clamav-daemon \
+    terminator \
+    apt-transport-https \
+    software-properties-common \
+    apt-utils\
+    curl \
+    vim \
+    nano \
+    git \
+    wget \
+    zip \
+    less >/dev/null
+
 # Node.js
 echo "Installing Node.js and npm..."
 apt-get update >/dev/null

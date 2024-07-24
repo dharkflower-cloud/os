@@ -74,7 +74,12 @@ function install_pkg() {
     add-apt-repository -y ppa:ubuntucinnamonremix/all >/dev/null
     apt-get update >/dev/null
     apt-get install -y \
-        cinnamon >/dev/null
+        cinnamon \
+        cinnamon-core \
+        cinnamon-session \
+        cinnamon-session-common \
+        cinnamon-settings-daemon \
+        cinnamon-desktop-environment >/dev/null
 
     # Remove GNOME and Unity
     echo "Removing GNOME and Unity..."

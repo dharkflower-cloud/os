@@ -23,20 +23,23 @@ export GRUB_INSTALL_LABEL="Install Flower Linux"
 
 # Packages to be removed from the target system after installation completes succesfully
 export TARGET_PACKAGE_REMOVE="
-    ubiquity \
-    casper \
-    discover \
-    laptop-detect \
-    os-prober \
+    ubiquity
+    casper
+    discover
+    laptop-detect
+    os-prober
 "
 
 # Package customisation function. Update this function to customize packages
 # present on the installed system.
 function customize_image() {
-    echo -e "Installing Cinnamon..."
-    apt-get install -y \
-        cinnamon \
-        apt-utils >/dev/null
+
+    # Include flower.sh
+    . /root/flower.sh
+
+    apt-get install -y lightdm
+    dpkg-reconfigure lightdm
+    echo "user-session=cinnamon" | tee -a /etc/lightdm/lightdm.conf
 
     # Set the bootloader logo
     mkdir -p /usr/share/plymouth/themes/ubuntu-logo
@@ -44,8 +47,8 @@ function customize_image() {
 
     # Set the user and login screen backgrounds
     mkdir -p /usr/share/backgrounds
-    cp /root/assets/solid-color-image.png /usr/share/backgrounds/user-background.png
-    cp /root/assets/bg-large.png /usr/share/backgrounds/login-background.png
+    cp /root/assets/user-background-image.png /usr/share/backgrounds/user-background.png
+    cp /root/assets/login-background.png /usr/share/backgrounds/login-background.png
 
     # Configure backgrounds
     gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
@@ -59,25 +62,4 @@ function customize_image() {
     echo "d-i time/zone string America/Denver" > /root/preseed.cfg
     echo "d-i clock-setup/utc boolean true" >> /root/preseed.cfg
     echo "d-i clock-setup/ntp boolean true" >> /root/preseed.cfg
-
-    echo -e "Installing useful tools..."
-    apt-get install -y \
-        clamav-daemon \
-        terminator \
-        apt-transport-https \
-        curl \
-        vim \
-        nano \
-        less >/dev/null
-
-    echo -e "Purging unnecessary packages..."
-    apt-get purge -y \
-        gnome-mahjongg \
-        gnome-mines \
-        gnome-sudoku \
-        aisleriot \
-        hitori >/dev/null
-
-    # Include flower.sh
-    . /root/flower.sh
 }
