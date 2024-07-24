@@ -1,23 +1,18 @@
 #!/bin/bash
 
-set -e                  # exit on error
-set -o pipefail         # exit on pipeline error
-#set -u                  # treat unset variable as error
-#set -x
+set -e
+set -o pipefail
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+DATE=$(TZ="UTC" date +"%y%m%d-%H%M%S")
 
 CMD=(setup_host debootstrap run_chroot build_iso)
 
-DATE=`TZ="UTC" date +"%y%m%d-%H%M%S"`
-
 function find_index() {
-    local ret;
-    local i;
-    for ((i=0; i<${#CMD[*]}; i++)); do
-        if [ "${CMD[i]}" == "$1" ]; then
-            index=$i;
-            return;
+    for i in "${!CMD[@]}"; do
+        if [ "${CMD[$i]}" == "$1" ]; then
+            index=$i
+            return
         fi
     done
     echo "Command not found: $1"
@@ -47,7 +42,7 @@ function load_config() {
 
 function setup_host() {
     echo "=====> running setup_host ..."
-    echo -e "Updating package list and installing necessary packages for the host..."
+    echo "Updating package list and installing necessary packages for the host..."
     sudo apt update -y >/dev/null
     sudo apt install -y \
         binutils \
@@ -67,38 +62,58 @@ function debootstrap() {
     sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
 }
 
+function verify_assets_directory() {
+    if [ ! -d "$SCRIPT_DIR/assets" ]; then
+        echo "Assets directory not found in $SCRIPT_DIR"
+        exit 1
+    fi
+
+    echo "=====> Verifying assets directory and files in $SCRIPT_DIR ..."
+    for file in "$SCRIPT_DIR/assets"/*; do
+        if [ ! -f "$file" ]; then
+            echo "Missing file: $file"
+            exit 1
+        fi
+    done
+    echo "All asset files are present."
+}
+
+function copy_to_chroot() {
+    echo "=====> Copying files to chroot environment ..."
+
+    # Ensure chroot/root directory exists
+    if [ ! -d chroot/root ]; then
+        sudo mkdir -p chroot/root
+    fi
+
+    # Ensure chroot/root/assets directory exists
+    if [ ! -d chroot/root/assets ]; then
+        sudo mkdir -p chroot/root/assets
+    fi
+
+    echo "Copying assets directory to chroot environment..."
+    sudo cp -r "$SCRIPT_DIR/assets"/* "chroot/root/assets/"
+
+    # Verify files are copied
+    for file in "$SCRIPT_DIR/assets"/*; do
+        if [ ! -f "chroot/root/assets/$(basename "$file")" ]; then
+            echo "File missing after copy: $(basename "$file")"
+            exit 1
+        fi
+    done
+    echo "All files copied successfully."
+}
+
 function run_chroot() {
     echo "=====> running run_chroot ..."
 
     chroot_enter_setup
+    copy_to_chroot
 
-    # Ensure the assets directory exists in the chroot environment
-    if [ ! -d chroot/root ]; then
-        echo "chroot/root directory does not exist, creating it..."
-        sudo mkdir -p chroot/root
-    fi
-
-    echo "Creating assets directory inside chroot/root..."
-    sudo mkdir -p chroot/root/assets
-    if [ $? -ne 0 ]; then
-        echo "Failed to create assets directory in chroot environment!"
-        exit 1
-    fi
-
-    # Setup build scripts and assets in chroot environment
+    # Setup build scripts in chroot environment
     sudo cp "$SCRIPT_DIR/chroot_build.sh" "chroot/root/chroot_build.sh"
     sudo cp "$SCRIPT_DIR/config.sh" "chroot/root/config.sh"
     sudo cp "$SCRIPT_DIR/flower.sh" "chroot/root/flower.sh"
-    sudo cp -r "$SCRIPT_DIR/assets" "chroot/root/"
-
-    # Verify that the files exist in the chroot environment
-    echo "Verifying files in chroot environment..."
-    for file in "$SCRIPT_DIR/assets"/*; do
-        if [ ! -f "chroot/root/assets/$(basename "$file")" ]; then
-            echo "File missing in chroot environment: $(basename "$file")"
-            exit 1
-        fi
-    done
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
@@ -112,11 +127,9 @@ function build_iso() {
     rm -rf image
     mkdir -p image/{casper,isolinux,install}
 
-    # copy kernel files
     sudo cp chroot/boot/vmlinuz-**-**-generic image/casper/vmlinuz
     sudo cp chroot/boot/initrd.img-**-**-generic image/casper/initrd
 
-    # grub
     touch image/ubuntu
     cat <<EOF > image/isolinux/grub.cfg
 search --set=root --file /ubuntu
@@ -132,29 +145,19 @@ menuentry "${GRUB_INSTALL_LABEL}" {
 }
 EOF
 
-    # Copy preseed file to ISO image
     sudo cp "$SCRIPT_DIR/preseed.cfg" "image/preseed.cfg"
 
-    # generate manifest
-    echo -e "Generating filesystem manifest..."
+    echo "Generating filesystem manifest..."
     sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest >/dev/null
     sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
     for pkg in $TARGET_PACKAGE_REMOVE; do
         sudo sed -i "/$pkg/d" image/casper/filesystem.manifest-desktop
     done
 
-    # compress rootfs
     echo "Compressing root filesystem..."
-    sudo mksquashfs chroot image/casper/filesystem.squashfs \
-        -noappend -no-duplicates -no-recovery \
-        -wildcards \
-        -e "var/cache/apt/archives/*" \
-        -e "tmp/*" \
-        -e "tmp/.*" \
-        -e "swapfile" >/dev/null
+    sudo mksquashfs chroot image/casper/filesystem.squashfs -noappend -no-duplicates -no-recovery -wildcards -e "var/cache/apt/archives/*" -e "tmp/*" -e "tmp/.*" -e "swapfile" >/dev/null
     printf $(sudo du -sx --block-size=1 chroot | cut -f1) > image/casper/filesystem.size
 
-    # create diskdefines
     cat <<EOF > image/README.diskdefines
 #define DISKNAME  ${GRUB_INSTALL_LABEL}
 #define TYPE  binary
@@ -167,98 +170,58 @@ EOF
 #define TOTALNUM0  1
 EOF
 
-    # create iso image
     echo "Creating ISO image..."
     pushd "$SCRIPT_DIR/image"
-    grub-mkstandalone \
-        --format=x86_64-efi \
-        --output=isolinux/bootx64.efi \
-        --locales="" \
-        --fonts="" \
-        "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
+    grub-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
 
     (
-        cd isolinux && \
-        dd if=/dev/zero of=efiboot.img bs=1M count=10 && \
-        sudo mkfs.vfat efiboot.img >/dev/null && \
-        LC_CTYPE=C mmd -i efiboot.img efi efi/boot && \
+        cd isolinux
+        dd if=/dev/zero of=efiboot.img bs=1M count=10
+        sudo mkfs.vfat efiboot.img >/dev/null
+        LC_CTYPE=C mmd -i efiboot.img efi efi/boot
         LC_CTYPE=C mcopy -i efiboot.img ./bootx64.efi ::efi/boot/
     )
 
-    grub-mkstandalone \
-        --format=i386-pc \
-        --output=isolinux/core.img \
-        --install-modules="linux16 linux normal iso9660 biosdisk memdisk search tar ls" \
-        --modules="linux16 linux normal iso9660 biosdisk search" \
-        --locales="" \
-        --fonts="" \
-        "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
+    grub-mkstandalone --format=i386-pc --output=isolinux/core.img --install-modules="linux16 linux normal iso9660 biosdisk memdisk search tar ls" --modules="linux16 linux normal iso9660 biosdisk search" --locales="" --fonts="" "boot/grub/grub.cfg=isolinux/grub.cfg" >/dev/null
 
     cat /usr/lib/grub/i386-pc/cdboot.img isolinux/core.img > isolinux/bios.img
 
     sudo /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v -e 'md5sum.txt' -e 'bios.img' -e 'efiboot.img' > md5sum.txt)" >/dev/null
 
-    sudo xorriso \
-        -as mkisofs \
-        -iso-level 3 \
-        -full-iso9660-filenames \
-        -volid "$TARGET_NAME" \
-        -eltorito-boot boot/grub/bios.img \
-        -no-emul-boot \
-        -boot-load-size 1 \
-        -boot-info-table \
-        --eltorito-catalog boot/grub/boot.cat \
-        --grub2-boot-info \
-        --grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img \
-        -eltorito-alt-boot \
-        -e EFI/efiboot.img \
-        -no-emul-boot \
-        -append_partition 2 0xef isolinux/efiboot.img \
-        -output "$SCRIPT_DIR/$TARGET_NAME.iso" \
-        -m "isolinux/efiboot.img" \
-        -m "isolinux/bios.img" \
-        -graft-points \
-           "/EFI/efiboot.img=isolinux/efiboot.img" \
-           "/boot/grub/bios.img=isolinux/bios.img" \
-           "." >/dev/null
+    sudo xorriso -as mkisofs -iso-level 3 -full-iso9660-filenames -volid "$TARGET_NAME" -eltorito-boot boot/grub/bios.img -no-emul-boot -boot-load-size 1 -boot-info-table --eltorito-catalog boot/grub/boot.cat --grub2-boot-info --grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img -eltorito-alt-boot -e EFI/efiboot.img -no-emul-boot -append_partition 2 0xef isolinux/efiboot.img -output "$SCRIPT_DIR/$TARGET_NAME.iso" -m "isolinux/efiboot.img" -m "isolinux/bios.img" -graft-points "/EFI/efiboot.img=isolinux/efiboot.img" "/boot/grub/bios.img=isolinux/bios.img" "." >/dev/null
 
     popd
 }
 
-# =============   main  ================
-
-# we always stay in $SCRIPT_DIR
+# Main Execution Flow
 cd "$SCRIPT_DIR"
-
 load_config
 
-# check number of args
+verify_assets_directory
+
 if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
 
-# loop through args
 dash_flag=false
 start_index=0
-end_index=${#CMD[*]}
-for ii in "$@";
-do
-    if [[ $ii == "-" ]]; then
+end_index=${#CMD[@]}
+for arg in "$@"; do
+    if [[ $arg == "-" ]]; then
         dash_flag=true
-        continue;
+        continue
     fi
-    find_index $ii
+    find_index $arg
     if [[ $dash_flag == false ]]; then
-        start_index=$index;
+        start_index=$index
     else
-        end_index=$(($index+1));
+        end_index=$((index + 1))
     fi
 done
 if [[ $dash_flag == false ]]; then
-    end_index=$(($start_index + 1));
+    end_index=$((start_index + 1))
 fi
 
-#loop through the commands
-for ((ii=$start_index; ii<$end_index; ii++)); do
-    ${CMD[ii]}
+for ((i=$start_index; i<$end_index; i++)); do
+    ${CMD[i]}
 done
 
 echo "$0 - Initial build is done!"
