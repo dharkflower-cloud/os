@@ -11,18 +11,6 @@ CMD=(setup_host debootstrap run_chroot build_iso)
 
 DATE=`TZ="UTC" date +"%y%m%d-%H%M%S"`
 
-# List of essential files
-ESSENTIAL_FILES=(
-    "$SCRIPT_DIR/assets/ubuntu-logo.png"
-    "$SCRIPT_DIR/assets/Protoflower_beta3_large_whitebg.png"
-    "$SCRIPT_DIR/assets/Protoflower_bootloader.png"
-    "$SCRIPT_DIR/assets/login-background.png"
-    "$SCRIPT_DIR/assets/output (2).png"
-    "$SCRIPT_DIR/assets/solid-color-image.png"
-    "$SCRIPT_DIR/assets/user-background-image.png"
-    "$SCRIPT_DIR/assets/user-background.png"
-)
-
 function find_index() {
     local ret;
     local i;
@@ -79,17 +67,6 @@ function debootstrap() {
     sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
 }
 
-function verify_essential_files() {
-    echo "=====> verifying essential files ..."
-    for file in "${ESSENTIAL_FILES[@]}"; do
-        if [ ! -f "$file" ]; then
-            echo "Essential file missing: $file"
-            exit 1
-        fi
-    done
-    echo "All essential files are present."
-}
-
 function run_chroot() {
     echo "=====> running run_chroot ..."
 
@@ -108,11 +85,20 @@ function run_chroot() {
         exit 1
     fi
 
-    # Setup build scripts in chroot environment
-    sudo cp $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
-    sudo cp $SCRIPT_DIR/config.sh chroot/root/config.sh
-    sudo cp -r $SCRIPT_DIR/assets chroot/root/assets
-    sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
+    # Setup build scripts and assets in chroot environment
+    sudo cp "$SCRIPT_DIR/chroot_build.sh" "chroot/root/chroot_build.sh"
+    sudo cp "$SCRIPT_DIR/config.sh" "chroot/root/config.sh"
+    sudo cp "$SCRIPT_DIR/flower.sh" "chroot/root/flower.sh"
+    sudo cp -r "$SCRIPT_DIR/assets" "chroot/root/"
+
+    # Verify that the files exist in the chroot environment
+    echo "Verifying files in chroot environment..."
+    for file in "$SCRIPT_DIR/assets"/*; do
+        if [ ! -f "chroot/root/assets/$(basename "$file")" ]; then
+            echo "File missing in chroot environment: $(basename "$file")"
+            exit 1
+        fi
+    done
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
@@ -147,7 +133,7 @@ menuentry "${GRUB_INSTALL_LABEL}" {
 EOF
 
     # Copy preseed file to ISO image
-    sudo cp $SCRIPT_DIR/preseed.cfg image/preseed.cfg
+    sudo cp "$SCRIPT_DIR/preseed.cfg" "image/preseed.cfg"
 
     # generate manifest
     echo -e "Generating filesystem manifest..."
@@ -183,7 +169,7 @@ EOF
 
     # create iso image
     echo "Creating ISO image..."
-    pushd $SCRIPT_DIR/image
+    pushd "$SCRIPT_DIR/image"
     grub-mkstandalone \
         --format=x86_64-efi \
         --output=isolinux/bootx64.efi \
@@ -242,11 +228,9 @@ EOF
 # =============   main  ================
 
 # we always stay in $SCRIPT_DIR
-cd $SCRIPT_DIR
+cd "$SCRIPT_DIR"
 
 load_config
-
-verify_essential_files
 
 # check number of args
 if [[ $# == 0 || $# > 3 ]]; then echo "Usage: $0 [start_cmd] [-] [end_cmd]"; exit 1; fi
