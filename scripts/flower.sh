@@ -16,7 +16,7 @@ apt-get install -y \
     less >/dev/null
 
 # Node.js
-echo "Installing Node.js and npm..."
+echo "Installing Node.js and NPM..."
 apt-get update >/dev/null
 apt-get -y install nodejs npm >/dev/null
 npm install -g n >/dev/null
@@ -98,7 +98,6 @@ cd /usr/local/src/drush
 git checkout 8.x >/dev/null
 ln -s /usr/local/src/drush/drush /usr/bin/drush
 composer install --no-interaction >/dev/null
-
 cd "$SCRIPT_DIR"
 
 # Databases

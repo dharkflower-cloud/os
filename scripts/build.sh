@@ -77,17 +77,45 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
     # Ensure the assets directory exists in the chroot environment
-    sudo chroot chroot mkdir -p /root/assets
+    echo "Creating assets directory in chroot environment..."
+    sudo mkdir -p chroot/root/assets
 
-    # Create preseed file to skip location step
-    echo "d-i time/zone string America/Denver" > $SCRIPT_DIR/preseed.cfg
-    echo "d-i clock-setup/utc boolean true" >> $SCRIPT_DIR/preseed.cfg
-    echo "d-i clock-setup/ntp boolean true" >> $SCRIPT_DIR/preseed.cfg
+    # Verify directory creation
+    if [ ! -d "chroot/root/assets" ]; then
+        echo "Failed to create assets directory in chroot environment!"
+        exit 1
+    else
+        echo "Assets directory created successfully."
+    fi
+
+    # Check source directory and files
+    if [ ! -d "$SCRIPT_DIR/assets" ]; then
+        echo "Source assets directory does not exist: $SCRIPT_DIR/assets"
+        exit 1
+    else
+        echo "Source assets directory exists."
+    fi
+
+    if [ -z "$(ls -A $SCRIPT_DIR/assets)" ]; then
+        echo "Source assets directory is empty: $SCRIPT_DIR/assets"
+        exit 1
+    else
+        echo "Source assets directory contains files."
+    fi
 
     # Copy assets to chroot environment
+    echo "Copying assets to chroot environment..."
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
     sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
     sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
+
+    # Verify files in chroot environment
+    if [ -z "$(ls -A chroot/root/assets)" ]; then
+        echo "Failed to copy assets to chroot environment!"
+        exit 1
+    else
+        echo "Assets copied successfully to chroot environment."
+    fi
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -
@@ -101,6 +129,8 @@ function run_chroot() {
 
     chroot_exit_teardown
 }
+
+
 
 function build_iso() {
     echo "=====> running build_iso ..."
