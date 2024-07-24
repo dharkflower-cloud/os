@@ -62,6 +62,16 @@ function debootstrap() {
     sudo debootstrap --arch=amd64 --variant=minbase $TARGET_UBUNTU_VERSION chroot $TARGET_UBUNTU_MIRROR
 }
 
+function check_and_create_directory() {
+    local dir=$1
+    if [ ! -d "$dir" ]; then
+        echo "Directory $dir does not exist. Creating..."
+        sudo mkdir -p "$dir"
+    else
+        echo "Directory $dir already exists."
+    fi
+}
+
 function copy_assets_to_chroot() {
     echo "=====> Attempting to copy assets directory to chroot environment ..."
 
@@ -74,12 +84,12 @@ function copy_assets_to_chroot() {
     ls -l "$SCRIPT_DIR/assets"
 
     # Check and create necessary directories
-    for dir in "chroot" "chroot/root" "chroot/root/assets"; do
-        if [ ! -d "$dir" ]; then
-            echo "Creating directory $dir ..."
-            sudo mkdir -p "$dir"
-        fi
-    done
+    check_and_create_directory "chroot"
+    check_and_create_directory "chroot/root"
+    check_and_create_directory "chroot/root/assets"
+
+    echo "Directory structure before copying assets:"
+    tree chroot
 
     declare -a methods=(
         "sudo cp -r"
