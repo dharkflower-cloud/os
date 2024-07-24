@@ -190,5 +190,4 @@ echo "Installing various utilities..."
 apt-get -y install \
     gh \
     guake \
-    kdeconnect \
-    mpich
+    kdeconnect
