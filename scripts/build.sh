@@ -72,6 +72,19 @@ function run_chroot() {
 
     chroot_enter_setup
 
+    # Ensure the assets directory exists in the chroot environment
+    if [ ! -d chroot/root ]; then
+        echo "chroot/root directory does not exist, creating it..."
+        sudo mkdir -p chroot/root
+    fi
+
+    echo "Creating assets directory inside chroot/root..."
+    sudo mkdir -p chroot/root/assets
+    if [ $? -ne 0 ]; then
+        echo "Failed to create assets directory in chroot environment!"
+        exit 1
+    fi
+
     # Setup build scripts in chroot environment
     sudo cp $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo cp $SCRIPT_DIR/config.sh chroot/root/config.sh
