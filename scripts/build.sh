@@ -168,7 +168,7 @@ EOF
 #define TOTALNUM0  1
 EOF
 
-    # create iso image
+    # create iso image here
     echo "Creating ISO image..."
     pushd $SCRIPT_DIR/image
     grub-mkstandalone \
