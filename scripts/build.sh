@@ -74,6 +74,8 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
+    sudo mkdir chroot/root/assets
+
     # Copy assets to chroot environment
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
     sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
@@ -87,7 +89,6 @@ function run_chroot() {
     # Cleanup after image changes
     sudo rm -f chroot/root/chroot_build.sh
     sudo rm -f chroot/root/config.sh
-    sudo rm -rf chroot/root/assets
     sudo rm -f chroot/root/preseed.cfg
     sudo rm -f chroot/root/flower.sh
 
