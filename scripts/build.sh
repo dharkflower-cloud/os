@@ -60,6 +60,8 @@ function setup_host() {
         dosfstools \
         unzip >/dev/null
     sudo mkdir -p chroot
+    sudo mkdir -p chroot/root
+    sudo mkdir -p chroot/root/assets
 }
 
 function debootstrap() {
@@ -73,8 +75,6 @@ function run_chroot() {
     # Setup build scripts in chroot environment
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
-
-    sudo mkdir chroot/root/assets
 
     # Copy assets to chroot environment
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
