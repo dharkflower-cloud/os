@@ -1,7 +1,7 @@
 #!/bin/bash
 
-set -e                  # exit on error
-set -o pipefail         # exit on pipeline error
+#set -e                  # exit on error
+#set -o pipefail         # exit on pipeline error
 #set -u                  # treat unset variable as error
 #set -x
 
