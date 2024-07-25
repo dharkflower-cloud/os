@@ -70,8 +70,6 @@ function debootstrap() {
 function run_chroot() {
     echo "=====> running run_chroot ..."
 
-    chroot_enter_setup
-
     # Setup build scripts in chroot environment
     sudo ln -f $SCRIPT_DIR/chroot_build.sh chroot/root/chroot_build.sh
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
@@ -80,6 +78,8 @@ function run_chroot() {
     sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
     sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
     sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
+
+    chroot_enter_setup
 
     # Launch into chroot environment to build install image.
     sudo chroot chroot /usr/bin/env DEBIAN_FRONTEND=${DEBIAN_FRONTEND:-readline} /root/chroot_build.sh -

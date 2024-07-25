@@ -118,8 +118,6 @@ function install_pkg() {
         ubiquity-frontend-gtk \
         ubiquity-ubuntu-artwork >/dev/null
 
-    mkdir -p chroot/root/assets
-
     # Call into config function
     customize_image
 
