@@ -38,6 +38,13 @@ function chroot_exit_teardown() {
     sudo chroot chroot umount /dev/pts
     sudo umount chroot/dev
     sudo umount chroot/run
+
+    sudo rm -rf /tmp/*
+    sudo rm -rf /var/tmp/*
+
+    sudo apt-get autoremove -y
+    sudo apt-get autoclean -y
+    sudo apt-get clean
 }
 
 # Load configuration values from file
@@ -47,6 +54,10 @@ function load_config() {
 
 function setup_host() {
     echo "=====> running setup_host ..."
+
+    sudo journalctl --vacuum-time=7d
+    sudo journalctl --vacuum-size=100M
+
     echo -e "Updating package list and installing necessary packages for the host..."
     sudo apt update >/dev/null
     sudo apt install -y \

@@ -23,6 +23,30 @@ jobs:
           remove-codeql: 'true'
           remove-large-packages: 'true'
           remove-cached-tools: 'true'
+          remove-docker-images: 'true'
+          remove-swapfile: 'true'
+
+      - name: Clean up APT cache
+        run: sudo apt-get clean
+
+      - name: Autoremove and Autoclean
+        run: |
+          sudo apt-get autoremove -y
+          sudo apt-get autoclean
+
+      - name: Remove Docker images
+        run: docker system prune -af
+
+      - name: Remove temporary files
+        run: sudo rm -rf /tmp/*
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
 
       - name: Build
