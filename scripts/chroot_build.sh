@@ -44,13 +44,6 @@ EOF
         mkdir -p /root
     fi
 
-    echo "Creating assets directory inside /root..."
-    mkdir -p /root/assets
-    if [ $? -ne 0 ]; then
-        echo "Failed to create assets directory in chroot environment!"
-        exit 1
-    fi
-
     # we need to install systemd first, to configure machine id
     echo "Updating package list and installing systemd-sysv..."
     apt-get update -y >/dev/null
