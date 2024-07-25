@@ -157,7 +157,6 @@ EOF
 
     apt-get clean -y >/dev/null
 
-
     # Run flower.sh
     echo "Running flower.sh..."
     /bin/bash /root/flower.sh

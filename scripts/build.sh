@@ -61,7 +61,7 @@ function setup_host() {
         unzip >/dev/null
     sudo mkdir -p chroot
     sudo mkdir -p chroot/root
-    sudo mkdir -p chroot/root/assets
+    #sudo mkdir -p chroot/root/assets
 }
 
 function debootstrap() {
@@ -77,7 +77,7 @@ function run_chroot() {
     sudo ln -f $SCRIPT_DIR/config.sh chroot/root/config.sh
 
     # Copy assets to chroot environment
-    sudo cp $SCRIPT_DIR/assets/* chroot/root/assets/
+    sudo cp $SCRIPT_DIR/assets chroot/root/assets
     sudo cp $SCRIPT_DIR/flower.sh chroot/root/flower.sh
     sudo cp $SCRIPT_DIR/preseed.cfg chroot/root/preseed.cfg
 

@@ -38,10 +38,6 @@ function set_bootloader_logo() {
 
 function set_backgrounds() {
     mkdir -p /usr/share/backgrounds
-    cp $SCRIPT_DIR/assets/user-background-image.png /usr/share/backgrounds/user-background.png
-    cp $SCRIPT_DIR/assets/login-background.png /usr/share/backgrounds/login-background.png
-
-    sudo cp $SCRIPT_DIR/assets/solid-color-image.png chroot/root/assets/
 
     gsettings set org.cinnamon.desktop.background picture-uri "file:///usr/share/backgrounds/user-background.png"
     gsettings set org.cinnamon.desktop.screensaver picture-uri "file:///usr/share/backgrounds/login-background.png"
