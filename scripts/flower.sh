@@ -45,7 +45,7 @@ function install_node() {
         @capacitor/cli \
         cordova \
         @nestjs/cli \
-        yarn \
+        yarn \w
         jest-cli \
         ember-cli \
         git-lab-cli >/dev/null
